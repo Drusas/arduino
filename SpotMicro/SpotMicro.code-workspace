@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"name": "SpotMotion",
+			"path": "SpotMotion"
+		},
+		{
+			"path": "MT-LegTestBench"
+		}
+	],
+	"settings": {}
+}
