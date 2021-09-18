@@ -1,7 +1,8 @@
 #include <Arduino.h>
 #include "SerialCommands.h"
 #include "Motion.h"
-// #include "IKModel.h"
+#include "IKModel.h"
+#include "ServoController.h"
 
 enum MotionMode {
   NONE = 0,
@@ -104,9 +105,15 @@ void cmd_status(SerialCommands* sender) {
   sender->GetSerial()->print(hipyController->atPosition()); Serial.print(" ,"); 
   sender->GetSerial()->print(hipxController->atPosition()); Serial.print(" ,"); 
   sender->GetSerial()->println(kneeController->atPosition());
+
+  sender->GetSerial()->print("End effector: (");
+  
+  Point p = femur->getEndOfChain();
+  sender->GetSerial()->print(p.x); sender->GetSerial()->print(","); 
+  sender->GetSerial()->print(p.y); sender->GetSerial()->println(")");
 }
 
-// TARGET X Y
+// TARGET X Y Z
 void cmd_target(SerialCommands* sender) {
   char* x_str = sender->Next();
 	if (x_str == NULL) {
@@ -120,25 +127,122 @@ void cmd_target(SerialCommands* sender) {
 		return;
 	}
 
-  Point target;
-  target.x = atof(x_str);
-  target.y = atof(y_str);
-  for (int i = 0; i < 10; i++) {
-    femur->updateIK(target);
-  }
+  char* z_str = sender->Next();
+	if (z_str == NULL) {
+		sender->GetSerial()->println("ERROR NO ANGLE - KNEE [ANGLE] ");
+		return;
+	}
 
-  femur->updateIK(target);
+  Point p;
+  p.x = atoi(x_str);
+  p.y = atoi(y_str);
+  p.z = atoi(z_str);
+
+  JointAngles j;
+
+  LegIKModel model = LegIKModel(108, 132, 15, 60);
+  model.getJointAnglesFromVectors(&p, 1, &j);
 
   sender->GetSerial()->print("Target: (");
-  sender->GetSerial()->print(target.x); sender->GetSerial()->print(","); 
-  sender->GetSerial()->print(target.y); sender->GetSerial()->print(") Angles: ("); 
-  sender->GetSerial()->print(toDegrees(femur->getAngle())); sender->GetSerial()->print(",");
-  sender->GetSerial()->print(toDegrees(tibia->getAngle())); sender->GetSerial()->println(")");
-  sender->GetSerial()->print("End effector: (");
-  
-  Point p = femur->getEndOfChain();
   sender->GetSerial()->print(p.x); sender->GetSerial()->print(","); 
-  sender->GetSerial()->print(p.y); sender->GetSerial()->println(")");  
+  sender->GetSerial()->print(p.y); sender->GetSerial()->print(","); 
+  sender->GetSerial()->print(p.z); sender->GetSerial()->println(")");
+  sender->GetSerial()->print("Angles: ("); 
+  sender->GetSerial()->print(degrees(j.hy)); sender->GetSerial()->print(",");
+  sender->GetSerial()->print(degrees(j.hx)); sender->GetSerial()->print(",");
+  sender->GetSerial()->print(degrees(j.k)); sender->GetSerial()->println(")");
+
+  if (DEBUG > 0)
+  {
+    Point target;
+    target.x = atof(x_str);
+    target.y = atof(y_str);
+    for (int i = 0; i < 10; i++) {
+      femur->updateIK(target);
+    }
+
+    float f = toDegrees(femur->getAngle());
+    float t = 180 - toDegrees(tibia->getAngle());
+    
+
+    sender->GetSerial()->print("Target: (");
+    sender->GetSerial()->print(target.x); sender->GetSerial()->print(","); 
+    sender->GetSerial()->print(target.y); sender->GetSerial()->println(")"); 
+    sender->GetSerial()->print("Angles: ("); 
+    sender->GetSerial()->print(f); sender->GetSerial()->print(",");
+    sender->GetSerial()->print(t); sender->GetSerial()->println(")");
+    sender->GetSerial()->print("End effector: (");
+    
+    Point p = femur->getEndOfChain();
+    sender->GetSerial()->print(p.x); sender->GetSerial()->print(","); 
+    sender->GetSerial()->print(p.y); sender->GetSerial()->println(")");  
+
+    // CONFIRM MATH
+    // SET TO THE ANGLES JUST RETURNED
+    float to = toDegrees(tibia->getAngle());
+    knee.cmdAngle = (uint8_t)to;
+    sender->GetSerial()->println();
+
+    sender->GetSerial()->print("SET TO: ("); 
+    sender->GetSerial()->print(to); sender->GetSerial()->println(")");
+
+    shoulder.cmdAngle = f;
+    knee.cmdAngle = to;
+
+    sender->GetSerial()->print("Angles: ("); 
+    sender->GetSerial()->print(shoulder.cmdAngle); sender->GetSerial()->print(",");
+    sender->GetSerial()->print(knee.cmdAngle); sender->GetSerial()->println(")");
+
+    sender->GetSerial()->print("SET Angles: ("); 
+    sender->GetSerial()->print(shoulder.cmdAngle); sender->GetSerial()->print(",");
+    sender->GetSerial()->print(knee.cmdAngle); sender->GetSerial()->println(")");
+
+    femur->setAngle((float)shoulder.cmdAngle);
+    tibia->setAngle(knee.cmdAngle);
+
+    p = femur->getEndOfChain();
+    sender->GetSerial()->print("End effector: (");
+    sender->GetSerial()->print(p.x); sender->GetSerial()->print(","); 
+    sender->GetSerial()->print(p.y); sender->GetSerial()->println(")");  
+
+    f = toDegrees(femur->getAngle());
+    t = 180 - toDegrees(tibia->getAngle());
+
+    shoulder.cmdAngle = f;
+    knee.cmdAngle = t;
+
+    sender->GetSerial()->print("Angles: ("); 
+    sender->GetSerial()->print(shoulder.cmdAngle); sender->GetSerial()->print(",");
+    sender->GetSerial()->print(knee.cmdAngle); sender->GetSerial()->println(")");
+  }
+}
+
+// ANGLE X Y
+// GIVEN ANGLES RETURN ENDPOINT
+void cmd_angle(SerialCommands* sender) {
+  char* f_str = sender->Next();
+	if (f_str == NULL) {
+		sender->GetSerial()->println("ERROR NO ANGLE - hipx [ANGLE] ");
+		return;
+	}
+
+  char* t_str = sender->Next();
+	if (t_str == NULL) {
+		sender->GetSerial()->println("ERROR NO ANGLE - KNEE [ANGLE] ");
+		return;
+	}
+
+  uint8_t fa = atoi(f_str);
+  uint8_t ta = atoi(t_str);
+  // ta = 180 - ta;
+
+  femur->setAngle((float)fa);
+  tibia->setAngle((float)ta);
+
+  Point p = femur->getEndOfChain();
+  sender->GetSerial()->print("End effector: (");
+  sender->GetSerial()->print(p.x); sender->GetSerial()->print(","); 
+  sender->GetSerial()->print(p.y); sender->GetSerial()->println(")");
 }
 
 SerialCommand cmd_servo_enable_("ENABLE", cmd_servo_enable);
@@ -148,6 +252,8 @@ SerialCommand cmd_hipy_("HIPY", cmd_hipy);
 SerialCommand cmd_knee_("KNEE", cmd_knee);
 SerialCommand cmd_status_("STATUS", cmd_status);
 SerialCommand cmd_target_("TARGET", cmd_target);
+SerialCommand cmd_angle_("ANGLE", cmd_angle);
+// SerialCommand cmd_home_("HOME", cmd_home);
 
 void setup() 
 {
@@ -161,13 +267,15 @@ void setup()
   serial_commands_.AddCommand(&cmd_knee_);
   serial_commands_.AddCommand(&cmd_status_);
   serial_commands_.AddCommand(&cmd_target_);
+  serial_commands_.AddCommand(&cmd_angle_);
+  // serial_commands_.AddCommand(&cmd_home_);
 
   pwm.begin();
   pwm.setOscillatorFrequency(27000000);  // The int.osc. is closer to 27MHz  
   pwm.setPWMFreq(SERVO_FREQ);  // Analog servos run at ~50 Hz updates
   delay(10);
 
-  servoController = new ServoController();
+  servoController = new ServoController(3);
 
   capsule.servoIndex = 0;
   joints[0] = &capsule;

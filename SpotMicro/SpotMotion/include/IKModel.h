@@ -1,5 +1,5 @@
 #ifndef _IKMODEL_H
-#define _IKMODE_H
+#define _IKMODEL_H
 
 #include <Arduino.h>
 
@@ -14,6 +14,55 @@ float toRadians(float degrees) {
 struct Point {
   float x;
   float y;
+  float z;
+};
+
+struct JointAngles {
+  float hx;
+  float hy;
+  float k;
+};
+
+class LegIKModel {
+  float femur, tibia, zOffset, yOffset;
+
+public:
+  LegIKModel(float femurLenght, float tibiaLength, float zOff, float yOff) {
+    femur = femurLenght;
+    tibia = tibiaLength;
+    zOffset = zOff;
+    yOffset = yOff;
+  }
+
+  // todo - error check (inputs, cos/sin/theta, etc.), return code
+  // todo - bounds check points in valid region (can we reach the point?)
+  // todo - add zOffset to z input?
+  // todo - pass values for transforming coordinate spaces 
+  void getJointAnglesFromVectors(Point* vectors, uint8_t numVectors, JointAngles *joints) {
+    for (uint8_t i = 0; i < numVectors; i++) {
+      Point v  = vectors[i];
+      // calculate Y-Z plane
+      float h1 = sqrt(zOffset*zOffset + yOffset*yOffset);
+      float h2 = sqrt(v.z*v.z + v.y*v.y);
+      float alpha0 = atan(v.y / v.z);
+      float alpha1 = atan(yOffset / zOffset);
+      float alpha2 = atan(zOffset / yOffset);
+      float alpha3 = asin(h1 * sin(alpha2 + radians(90)) / h2);
+      float alpha4 = radians(180) - (alpha3 + alpha2 + radians(90));
+      float alpha5 = alpha1 - alpha4;
+      float hyTheta = alpha0 - alpha5;
+      float r0 = h1 * sin(alpha4) / sin(alpha3);
+      // calculate X-Z plane
+      float h = sqrt(r0 * r0 + v.x * v.x);
+      float phi = asin(v.x / h);
+      float hxCos = (h*h + femur*femur - tibia*tibia) / (2 * h * femur);
+      float hxTheta = acos(hxCos) - phi;
+      float kTheta = acos((tibia*tibia + femur*femur - h*h) / (2*tibia*femur));
+      joints[i].hx = radians(90) + hxTheta; // TRANSLATE TO LOCAL COORDS
+      joints[i].hy = radians(90) - hyTheta;
+      joints[i].k = kTheta;
+    }
+  }
 };
 
 class CurveGenerator {
@@ -113,6 +162,10 @@ public:
 
   void setAngle(float angle) {
     this->angle = angle;
+    if (child) {
+      Point pt = getEndPointWorld();
+      child->setOrigin(pt);
+    }
   }
 
   float simplifyAngle(float someAngle) {
