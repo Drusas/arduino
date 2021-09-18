@@ -3,9 +3,43 @@
 
 #include <Arduino.h>
 
+float toDegrees(float radians) {
+  return radians / 2 / PI * 360;
+}
+
+float toRadians(float degrees) {
+  return degrees / 360 * 2 * PI;
+}
+
 struct Point {
   float x;
   float y;
+};
+
+class CurveGenerator {
+
+public:
+    static Point* GenerateCircle(float originX, float originY, float radius, uint8_t numPoints) {
+        Point* points = new Point[numPoints];
+        float angle = (2 * PI) / numPoints;
+        for (int i; i < numPoints; i++) {
+            points[i].x = radius * cos(angle * i) + originX;
+            points[i].y = radius * sin(angle * i) + originY;
+        }
+
+        return points;
+    }
+
+    static Point* GenerateEllipse(float originX, float originY, float r1, float r2, uint8_t numPoints) {
+        Point* points = new Point[numPoints];
+        float angle = (2 * PI) / numPoints;
+        for (int i; i < numPoints; i++) {
+            points[i].x = r1 * cos(angle * i) + originX;
+            points[i].y = r2 * sin(angle * i) + originY;
+        }
+
+        return points;
+    }
 };
 
 class Bone {
@@ -23,8 +57,12 @@ public:
     this->child = child;
   }
 
+  Bone* getChild() {
+    return this->child;
+  }
+
   float getAngle() {
-    return this->angle;
+    return simplifyAngle(this->angle);
   }
 
   void setOrigin(Point pt) {
@@ -68,8 +106,13 @@ public:
     if (child) {
       Point pt = getEndPointWorld();
       child->setOrigin(pt);
-      child->rotate(rotationAngle);
+      // child->rotate(rotationAngle);
+      child->setAngle(child->getAngle() - this->angle);
     }
+  }
+
+  void setAngle(float angle) {
+    this->angle = angle;
   }
 
   float simplifyAngle(float someAngle) {
@@ -113,7 +156,8 @@ public:
       float targetRotationAngle = simplifyAngle(targetCosAngle);
       float shiftAngle = targetRotationAngle - angle;
       angle += shiftAngle;
-      return getEndPointWorld();
+      Point myEndPt = getEndPointWorld();
+      return myEndPt;
     } 
     else {
       // Get angle of end of the chain

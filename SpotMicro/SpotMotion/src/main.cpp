@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include "SerialCommands.h"
 #include "Motion.h"
-#include "IKModel.h"
+// #include "IKModel.h"
 
 enum MotionMode {
   NONE = 0,
@@ -42,6 +42,7 @@ void cmd_mode(SerialCommands* sender) {
     motionMode = MotionMode::POSE;
   } else if (strcmp(mode_str, "WALK") == 0) {
     motionMode = MotionMode::WALK;
+    leg->generateTrajectory(femur);
   } else if (strcmp(mode_str, "POINT") == 0) {
     motionMode = MotionMode::POINT;
   } else {
@@ -122,13 +123,22 @@ void cmd_target(SerialCommands* sender) {
   Point target;
   target.x = atof(x_str);
   target.y = atof(y_str);
+  for (int i = 0; i < 10; i++) {
+    femur->updateIK(target);
+  }
+
   femur->updateIK(target);
 
   sender->GetSerial()->print("Target: (");
   sender->GetSerial()->print(target.x); sender->GetSerial()->print(","); 
   sender->GetSerial()->print(target.y); sender->GetSerial()->print(") Angles: ("); 
-  sender->GetSerial()->print(femur->getAngle()); sender->GetSerial()->print(",");
-  sender->GetSerial()->print(tibia->getAngle()); sender->GetSerial()->println(")");  
+  sender->GetSerial()->print(toDegrees(femur->getAngle())); sender->GetSerial()->print(",");
+  sender->GetSerial()->print(toDegrees(tibia->getAngle())); sender->GetSerial()->println(")");
+  sender->GetSerial()->print("End effector: (");
+  
+  Point p = femur->getEndOfChain();
+  sender->GetSerial()->print(p.x); sender->GetSerial()->print(","); 
+  sender->GetSerial()->print(p.y); sender->GetSerial()->println(")");  
 }
 
 SerialCommand cmd_servo_enable_("ENABLE", cmd_servo_enable);
@@ -177,7 +187,7 @@ void setup()
   shoulder.maxAngle = 180;
   shoulder.cmdAngle = 0;
 
-  knee.minAngle = 0;
+  knee.minAngle = 30;
   knee.maxAngle = 180;
   knee.cmdAngle = 0;
 
@@ -198,8 +208,26 @@ void setup()
 
 	Serial.println("Ready!");
 
-  tibia = new Bone(0, 0, 5., 132, 0);
-  femur = new Bone(0, 0, 180., 108, tibia);
+  tibia = new Bone(108, 0, 0.0, 132, 0);
+  femur = new Bone(0, 0, 0.0, 108, tibia);
+
+  Point* points = CurveGenerator::GenerateCircle(160, 160, 25, 10);
+    for (int i = 0; i < 10; i++) {
+      for (int j = 0; j < 15; j++) {
+        femur->updateIK(points[i]);
+      }
+      Serial.print("Target: (");
+      Serial.print(points[i].x); Serial.print(","); 
+      Serial.print(points[i].y); Serial.print(")" );
+      float shoulder = toDegrees(femur->getAngle());
+      float knee = 180 - toDegrees(tibia->getAngle());
+      uint8_t s = (uint8_t)shoulder;
+      uint8_t k = (uint8_t)knee;
+      Serial.print("Angles: (");
+      Serial.print(s); Serial.print(","); 
+      Serial.print(k); Serial.println(")");
+    }
+    delete points;
 }
 
 void loop() 

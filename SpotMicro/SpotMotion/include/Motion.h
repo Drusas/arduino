@@ -6,6 +6,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
+#include "IKModel.h"
 
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x40);
 
@@ -92,7 +93,7 @@ public:
     joint = servoJoint;
     cmdPos = joint->cmdAngle;
     actPos = cmdPos; // we don't want to move initially
-    increment = 5;
+    increment = 1;
   }
 
   void SetPosition(int angle) {
@@ -170,6 +171,22 @@ class LegController
     positionBuffer[bufferIdx].shoulder = s;
     positionBuffer[bufferIdx].knee = k;
     bufferIdx = ++bufferIdx % NUM_POSITIONS;
+  }
+
+  void generateTrajectory(Bone* joints) {
+    Point* points = CurveGenerator::GenerateCircle(-100, 250, 75, 10);
+    for (int i = 0; i < 10; i++) {
+      for (int j = 0; j < 15; j++) {
+        joints->updateIK(points[i]);
+      }
+      float shoulder = toDegrees(joints->getAngle());
+      float knee = 180 - toDegrees(joints->getChild()->getAngle());
+      uint8_t s = (uint8_t)shoulder;
+      uint8_t k = (uint8_t)knee;
+      positionBuffer[i].shoulder = s;
+      positionBuffer[i].knee = k;
+    }
+    delete points;
   }
 
   void Update() {
