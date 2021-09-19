@@ -1,13 +1,14 @@
 #include <Arduino.h>
 #include "SerialCommands.h"
-#include "Motion.h"
+#include "LegController.h"
 #include "IKModel.h"
 #include "ServoController.h"
+#include "ServoMotor.h"
 
 #define DEBUG_MAIN 0
 
 #define NUM_TASKS 10
-IUpdate **taskList;
+ITask **taskList;
 uint8_t managedTaskIdx = 0;
 
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x40);
@@ -28,9 +29,9 @@ Joint* joints[3];
 Joint capsule, shoulder, knee;
 MotionMode motionMode = MotionMode::NONE;
 IServoController* servoController;
-Sweeper* hipyController;
-Sweeper* hipxController;
-Sweeper* kneeController;
+ServoMotor* hipyController;
+ServoMotor* hipxController;
+ServoMotor* kneeController;
 LegController* leg;
 
 Bone *femur, *tibia;
@@ -38,7 +39,7 @@ Bone *femur, *tibia;
 char serial_command_buffer_[32];
 SerialCommands serial_commands_(&Serial, serial_command_buffer_, sizeof(serial_command_buffer_), "\r\n", " ");
 
-void addTask(IUpdate *task) {
+void addTask(ITask *task) {
   if (managedTaskIdx < NUM_TASKS) {
     taskList[managedTaskIdx++] = task;
   }
@@ -46,7 +47,7 @@ void addTask(IUpdate *task) {
 
 void updateTasks() {
   for (uint8_t i = 0; i < NUM_TASKS; i++) {
-    IUpdate* t = taskList[i];
+    ITask* t = taskList[i];
     if (t != 0) {
       t->Update();
     }
@@ -354,9 +355,9 @@ void setup()
   knee.homeAngle = 50;
 
   servoController = new ServoController(3);
-  hipyController = new Sweeper(20, &capsule, servoController, pwm);
-  hipxController = new Sweeper(20, &shoulder, servoController, pwm);
-  kneeController = new Sweeper(20, &knee, servoController, pwm);
+  hipyController = new ServoMotor(20, &capsule, servoController, pwm);
+  hipxController = new ServoMotor(20, &shoulder, servoController, pwm);
+  kneeController = new ServoMotor(20, &knee, servoController, pwm);
 
   servoController->addMotor(hipyController);
   servoController->addMotor(hipxController);
@@ -374,8 +375,8 @@ void setup()
   leg->addPosition(90,180,0);
   leg->addPosition(90,130,140);
 
-  taskList = (IUpdate**)malloc(sizeof(IUpdate*) * NUM_TASKS);
-  memset(taskList, 0, sizeof(IUpdate*) * NUM_TASKS);
+  taskList = (ITask**)malloc(sizeof(ITask*) * NUM_TASKS);
+  memset(taskList, 0, sizeof(ITask*) * NUM_TASKS);
   addTask(hipxController);
   addTask(hipyController);
   addTask(kneeController);

@@ -1,15 +1,14 @@
-#ifndef _MOTION_H
-#define _MOTION_H
+#ifndef _SERVOMOTOR_H
+#define _SERVOMOTOR_H
 
 #include <Adafruit_PWMServoDriver.h>
 #include <Arduino.h>
 #include <Wire.h>
-#include "IKModel.h"
 #include "IMotor.h"
-#include "IUpdate.h"
+#include "ITask.h"
 #include "IServoController.h"
 
-#define DEBUG_MOTION 0
+#define DEBUG_SERVOMOTOR 0
 
 #define SERVOMIN  95 // This is the 'minimum' pulse length count (out of 4096)
 #define SERVOMAX  455 // This is the 'maximum' pulse length count (out of 4096)
@@ -28,7 +27,7 @@ struct Joint {
   uint8_t homeAngle;
 };
 
-class Sweeper : public IMotor, public IUpdate
+class ServoMotor : public IMotor, public ITask
 {
   IServoController *servoController;
   Adafruit_PWMServoDriver driver;
@@ -46,40 +45,13 @@ protected:
   void performUpdate();
 
 public: 
-  Sweeper(int interval, Joint *servoJoint, IServoController *controller, Adafruit_PWMServoDriver pwmDriver);
+  ServoMotor(int interval, Joint *servoJoint, IServoController *controller, Adafruit_PWMServoDriver pwmDriver);
   void SetPosition(int angle);
   bool atPosition();
   int cmdPosition();
   int actPosition();
   void home();
   bool getHomed(); 
-};
-
-struct LegPosition {
-  uint8_t capsule;
-  uint8_t shoulder;
-  uint8_t knee;
-};
-
-class LegController : public IUpdate
-{
-  static const uint8_t NUM_POSITIONS = 10;
-  IServoController *servoController;
-  IMotor *capsuleController;
-  IMotor *shoulderController;
-  IMotor *kneeController;
-  LegPosition positionBuffer[NUM_POSITIONS];
-  uint8_t posIdx, bufferIdx;
-  
-  void incrementPosition();
-
-protected:
-  void performUpdate();
-    
- public:
-  LegController(int interval, IMotor *capsule, IMotor *shoulder, IMotor *knee, IServoController *controller);
-  void addPosition(uint8_t c, uint8_t s, uint8_t k);
-  void generateTrajectory(Bone* joints);
 };
 
 #endif

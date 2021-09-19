@@ -1,10 +1,10 @@
-#include "IUpdate.h"
+#include "ITask.h"
 
-void IUpdate::Update() {
+void ITask::Update() {
   if (!getEnabled()) {
     return;
   }
-  
+
   if ((millis() - lastUpdate) > updateInterval)
   {
     lastUpdate = millis();
@@ -12,10 +12,10 @@ void IUpdate::Update() {
   }
 }
 
-void IUpdate::setEnabled(bool state) {
+void ITask::setEnabled(bool state) {
   enabled = state;
 }
 
-bool IUpdate::getEnabled() {
+bool ITask::getEnabled() {
   return enabled;
 }
