@@ -2,17 +2,6 @@
 #define _IMOTOR_H
 #include <Arduino.h>
 
-class Util {
-public:
-  static float toDegrees(float radians) {
-    return radians / 2 / PI * 360;
-  }
-
-  static float toRadians(float degrees) {
-    return degrees / 360 * 2 * PI;
-  }
-};
-
 class IMotor {
 public:
   virtual void SetPosition(int angle) = 0;

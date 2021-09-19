@@ -207,70 +207,6 @@ void cmd_target(SerialCommands* sender) {
   sender->GetSerial()->print(degrees(j.hy)); sender->GetSerial()->print(",");
   sender->GetSerial()->print(degrees(j.hx)); sender->GetSerial()->print(",");
   sender->GetSerial()->print(degrees(j.k)); sender->GetSerial()->println(")");
-
-  if (DEBUG_MAIN > 0)
-  {
-    Point target;
-    target.x = atof(x_str);
-    target.y = atof(y_str);
-    for (int i = 0; i < 10; i++) {
-      femur->updateIK(target);
-    }
-
-    float f = Util::toDegrees(femur->getAngle());
-    float t = 180 - Util::toDegrees(tibia->getAngle());
-    
-
-    sender->GetSerial()->print("Target: (");
-    sender->GetSerial()->print(target.x); sender->GetSerial()->print(","); 
-    sender->GetSerial()->print(target.y); sender->GetSerial()->println(")"); 
-    sender->GetSerial()->print("Angles: ("); 
-    sender->GetSerial()->print(f); sender->GetSerial()->print(",");
-    sender->GetSerial()->print(t); sender->GetSerial()->println(")");
-    sender->GetSerial()->print("End effector: (");
-    
-    Point p = femur->getEndOfChain();
-    sender->GetSerial()->print(p.x); sender->GetSerial()->print(","); 
-    sender->GetSerial()->print(p.y); sender->GetSerial()->println(")");  
-
-    // CONFIRM MATH
-    // SET TO THE ANGLES JUST RETURNED
-    float to = Util::toDegrees(tibia->getAngle());
-    knee.cmdAngle = (uint8_t)to;
-    sender->GetSerial()->println();
-
-    sender->GetSerial()->print("SET TO: ("); 
-    sender->GetSerial()->print(to); sender->GetSerial()->println(")");
-
-    shoulder.cmdAngle = f;
-    knee.cmdAngle = to;
-
-    sender->GetSerial()->print("Angles: ("); 
-    sender->GetSerial()->print(shoulder.cmdAngle); sender->GetSerial()->print(",");
-    sender->GetSerial()->print(knee.cmdAngle); sender->GetSerial()->println(")");
-
-    sender->GetSerial()->print("SET Angles: ("); 
-    sender->GetSerial()->print(shoulder.cmdAngle); sender->GetSerial()->print(",");
-    sender->GetSerial()->print(knee.cmdAngle); sender->GetSerial()->println(")");
-
-    femur->setAngle((float)shoulder.cmdAngle);
-    tibia->setAngle(knee.cmdAngle);
-
-    p = femur->getEndOfChain();
-    sender->GetSerial()->print("End effector: (");
-    sender->GetSerial()->print(p.x); sender->GetSerial()->print(","); 
-    sender->GetSerial()->print(p.y); sender->GetSerial()->println(")");  
-
-    f = Util::toDegrees(femur->getAngle());
-    t = 180 - Util::toDegrees(tibia->getAngle());
-
-    shoulder.cmdAngle = f;
-    knee.cmdAngle = t;
-
-    sender->GetSerial()->print("Angles: ("); 
-    sender->GetSerial()->print(shoulder.cmdAngle); sender->GetSerial()->print(",");
-    sender->GetSerial()->print(knee.cmdAngle); sender->GetSerial()->println(")");
-  }
 }
 
 // ANGLE X Y
@@ -384,28 +320,10 @@ void setup()
   addTask(kneeMotor);
   addTask(leg);
 
-	Serial.println("Ready!");
-
   tibia = new Bone(108, 0, 0.0, 132, 0);
   femur = new Bone(0, 0, 0.0, 108, tibia);
 
-  Point* points = CurveGenerator::GenerateCircle(160, 160, 25, 10);
-    for (int i = 0; i < 10; i++) {
-      for (int j = 0; j < 15; j++) {
-        femur->updateIK(points[i]);
-      }
-      Serial.print("Target: (");
-      Serial.print(points[i].x); Serial.print(","); 
-      Serial.print(points[i].y); Serial.print(")" );
-      float shoulder = Util::toDegrees(femur->getAngle());
-      float knee = 180 - Util::toDegrees(tibia->getAngle());
-      uint8_t s = (uint8_t)shoulder;
-      uint8_t k = (uint8_t)knee;
-      Serial.print("Angles: (");
-      Serial.print(s); Serial.print(","); 
-      Serial.print(k); Serial.println(")");
-    }
-    delete points;
+  Serial.println("Ready!");
 }
 
 void loop() 

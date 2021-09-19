@@ -1,3 +1,6 @@
+// Inverse kinematic leg model for SpotMicroAI - https://gitlab.com/public-open-source/spotmicroai
+// Algorithm is from Adham Elarabawy's paper: www.adham-e.dev/papers
+
 #ifndef _IKMODEL_H
 #define _IKMODEL_H
 
