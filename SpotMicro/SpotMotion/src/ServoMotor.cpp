@@ -12,7 +12,7 @@ ServoMotor::ServoMotor(int interval, Joint *servoJoint, IServoController *contro
   actPos = cmdPos; 
   homePos = joint->homeAngle;
   homed = false;
-  increment = 1;
+  increment = 2;
 }
 
 void ServoMotor::incrementActualPosition() {
@@ -44,7 +44,7 @@ int ServoMotor::clipAngle(int inputAngle) {
 }
 
 void ServoMotor::SetPosition(int angle) {
-    cmdPos = clipAngle(angle);
+    cmdPos = clipAngle((angle));
 }
 
 bool ServoMotor::atPosition() {

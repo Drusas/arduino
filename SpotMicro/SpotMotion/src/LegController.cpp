@@ -1,36 +1,28 @@
 #include <Arduino.h>
 #include "LegController.h"
 
-LegController::LegController(int interval, IMotor *capsule, IMotor *shoulder, IMotor *knee, IServoController *controller) {
+LegController::LegController(float femurLength, float tibiaLength, float zOffset, float yOffset, 
+                             int interval, IMotor *capsule, IMotor *shoulder, IMotor *knee, IServoController *controller) {
   setEnabled(false);
   servoController = controller;
   updateInterval = interval;
-  capsuleController = capsule;
-  shoulderController = shoulder;
-  kneeController = knee;
+  hipyMotor = capsule;
+  hipxMotor = shoulder;
+  kneeMotor = knee;
   posIdx = bufferIdx = 0;
+  ikModel = LegIKModel(femurLength, tibiaLength, zOffset, yOffset);
 }
 
 void LegController::addPosition(uint8_t c, uint8_t s, uint8_t k) {
-  positionBuffer[bufferIdx].capsule = c;
-  positionBuffer[bufferIdx].shoulder = s;
-  positionBuffer[bufferIdx].knee = k;
+  positionBuffer[bufferIdx].hy = c;
+  positionBuffer[bufferIdx].hx = s;
+  positionBuffer[bufferIdx].k = k;
   bufferIdx = ++bufferIdx % NUM_POSITIONS;
 }
 
 void LegController::generateTrajectory(Bone* joints) {
-  Point* points = CurveGenerator::GenerateCircle(-100, 250, 75, 10);
-  for (int i = 0; i < 10; i++) {
-    for (int j = 0; j < 15; j++) {
-      joints->updateIK(points[i]);
-    }
-    float shoulder = Util::toDegrees(joints->getAngle());
-    float knee = 180 - Util::toDegrees(joints->getChild()->getAngle());
-    uint8_t s = (uint8_t)shoulder;
-    uint8_t k = (uint8_t)knee;
-    positionBuffer[i].shoulder = s;
-    positionBuffer[i].knee = k;
-  }
+  Point* points = CurveGenerator::GenerateCircle(25, 200, 50, NUM_POSITIONS);
+  ikModel.getJointAnglesFromVectors(points, NUM_POSITIONS, positionBuffer);
   delete points;
 }
 
@@ -39,15 +31,29 @@ void LegController::incrementPosition() {
   }
 
 void LegController::performUpdate() {
-  // Serial.print(capsuleController->atPosition()); Serial.print(" ,"); Serial.print(shoulderController->atPosition()); Serial.print(" ,"); Serial.println(kneeController->atPosition());
-    if (capsuleController->atPosition() &&
-        shoulderController->atPosition() &&
-        kneeController->atPosition()) {
-          capsuleController->SetPosition(positionBuffer[posIdx].capsule);
-          shoulderController->SetPosition(positionBuffer[posIdx].shoulder);
-          kneeController->SetPosition(positionBuffer[posIdx].knee);
-          // Serial.print(capsuleController->cmdPosition()); Serial.print(" ,"); Serial.print(shoulderController->cmdPosition()); Serial.print(" ,"); Serial.println(kneeController->cmdPosition());
-          incrementPosition();
-        }
+  if (DEBUG_LEGCONTROLLER > 0) {
+    Serial.print(hipyMotor->atPosition()); Serial.print(" ,"); Serial.print(hipxMotor->atPosition()); Serial.print(" ,"); Serial.println(kneeMotor->atPosition());
+  }
+  if (hipyMotor->atPosition() && hipxMotor->atPosition() && kneeMotor->atPosition()) {
+    hipyMotor->SetPosition(degrees(positionBuffer[posIdx].hy));
+    hipxMotor->SetPosition(degrees(positionBuffer[posIdx].hx));
+    kneeMotor->SetPosition(degrees(positionBuffer[posIdx].k));
+    if (DEBUG_LEGCONTROLLER > 0) {
+      Serial.print(hipyMotor->cmdPosition()); Serial.print(" ,"); Serial.print(hipxMotor->cmdPosition()); Serial.print(" ,"); Serial.println(kneeMotor->cmdPosition());
+    }
+    incrementPosition();
+  }
+}
+
+void LegController::moveToXYZ(float x, float y, float z) {
+  Point p;
+  p.x = x;
+  p.y = y;
+  p.z = z;
+  JointAngles j;
+  ikModel.getJointAnglesFromVectors(&p, 1, &j);
+  hipxMotor->SetPosition(degrees(j.hx));
+  hipyMotor->SetPosition(degrees(j.hy));
+  kneeMotor->SetPosition(degrees(j.k));
 }
 

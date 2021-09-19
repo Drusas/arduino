@@ -19,8 +19,15 @@ class LegIKModel {
   float femur, tibia, zOffset, yOffset;
 
 public:
-  LegIKModel(float femurLenght, float tibiaLength, float zOff, float yOff) {
-    femur = femurLenght;
+  LegIKModel() : 
+  femur(0),
+  tibia(0),
+  zOffset(0),
+  yOffset(0)
+  {}
+
+  LegIKModel(float femurLength, float tibiaLength, float zOff, float yOff) {
+    femur = femurLength;
     tibia = tibiaLength;
     zOffset = zOff;
     yOffset = yOff;
@@ -65,7 +72,8 @@ public:
         float angle = (2 * PI) / numPoints;
         for (int i; i < numPoints; i++) {
             points[i].x = radius * cos(angle * i) + originX;
-            points[i].y = radius * sin(angle * i) + originY;
+            points[i].y = 60;
+            points[i].z = radius * sin(angle * i) + originY;
         }
 
         return points;

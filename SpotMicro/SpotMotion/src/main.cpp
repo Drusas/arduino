@@ -29,9 +29,9 @@ Joint* joints[3];
 Joint capsule, shoulder, knee;
 MotionMode motionMode = MotionMode::NONE;
 IServoController* servoController;
-ServoMotor* hipyController;
-ServoMotor* hipxController;
-ServoMotor* kneeController;
+ServoMotor* hipyMotor;
+ServoMotor* hipxMotor;
+ServoMotor* kneeMotor;
 LegController* leg;
 
 Bone *femur, *tibia;
@@ -69,16 +69,16 @@ void cmd_mode(SerialCommands* sender) {
 
   if (strcmp(mode_str, "NONE") == 0) {
     motionMode = MotionMode::NONE;
-    hipxController->setEnabled(false);
-    hipyController->setEnabled(false);
-    kneeController->setEnabled(false);
+    hipxMotor->setEnabled(false);
+    hipyMotor->setEnabled(false);
+    kneeMotor->setEnabled(false);
     leg->setEnabled(false);
   } 
   else if (strcmp(mode_str, "MAN") == 0) {
     motionMode = MotionMode::MAN;
-    hipxController->setEnabled(true);
-    hipyController->setEnabled(true);
-    kneeController->setEnabled(true);
+    hipxMotor->setEnabled(true);
+    hipyMotor->setEnabled(true);
+    kneeMotor->setEnabled(true);
     leg->setEnabled(false);
   } 
   else if (strcmp(mode_str, "POSE") == 0) {
@@ -88,9 +88,9 @@ void cmd_mode(SerialCommands* sender) {
     leg->generateTrajectory(femur);
     motionMode = MotionMode::WALK;
     motionMode = MotionMode::MAN;
-    hipxController->setEnabled(true);
-    hipyController->setEnabled(true);
-    kneeController->setEnabled(true);
+    hipxMotor->setEnabled(true);
+    hipyMotor->setEnabled(true);
+    kneeMotor->setEnabled(true);
     leg->setEnabled(true);
   } 
   else if (strcmp(mode_str, "POINT") == 0) {
@@ -123,7 +123,7 @@ void cmd_hipx(SerialCommands* sender) {
 	}
 
 	int angle = atoi(angle_str);
-  hipxController->SetPosition(angle);
+  hipxMotor->SetPosition((angle));
 }
 
 void cmd_hipy(SerialCommands* sender) {
@@ -134,7 +134,7 @@ void cmd_hipy(SerialCommands* sender) {
 	}
   
 	int angle = atoi(angle_str);
-  hipyController->SetPosition(angle);
+  hipyMotor->SetPosition((angle));
 }
 
 void cmd_knee(SerialCommands* sender) {
@@ -145,20 +145,20 @@ void cmd_knee(SerialCommands* sender) {
 	}
   
 	int angle = atoi(angle_str);
-  kneeController->SetPosition(angle);
+  kneeMotor->SetPosition((angle));
 }
 
 void cmd_status(SerialCommands* sender) {
   
   sender->GetSerial()->print("CMDPOS: ");
-  sender->GetSerial()->print(hipyController->cmdPosition()); Serial.print(" ,"); 
-  sender->GetSerial()->print(hipxController->cmdPosition()); Serial.print(" ,"); 
-  sender->GetSerial()->println(kneeController->cmdPosition());
+  sender->GetSerial()->print(hipyMotor->cmdPosition()); Serial.print(" ,"); 
+  sender->GetSerial()->print(hipxMotor->cmdPosition()); Serial.print(" ,"); 
+  sender->GetSerial()->println(kneeMotor->cmdPosition());
 
   sender->GetSerial()->print("ATPOS: ");
-  sender->GetSerial()->print(hipyController->atPosition()); Serial.print(" ,"); 
-  sender->GetSerial()->print(hipxController->atPosition()); Serial.print(" ,"); 
-  sender->GetSerial()->println(kneeController->atPosition());
+  sender->GetSerial()->print(hipyMotor->atPosition()); Serial.print(" ,"); 
+  sender->GetSerial()->print(hipxMotor->atPosition()); Serial.print(" ,"); 
+  sender->GetSerial()->println(kneeMotor->atPosition());
 
   sender->GetSerial()->print("End effector: (");
   
@@ -191,6 +191,8 @@ void cmd_target(SerialCommands* sender) {
   p.x = atoi(x_str);
   p.y = atoi(y_str);
   p.z = atoi(z_str);
+
+  leg->moveToXYZ(p.x, p.y, p.z);
 
   JointAngles j;
 
@@ -355,15 +357,15 @@ void setup()
   knee.homeAngle = 50;
 
   servoController = new ServoController(3);
-  hipyController = new ServoMotor(20, &capsule, servoController, pwm);
-  hipxController = new ServoMotor(20, &shoulder, servoController, pwm);
-  kneeController = new ServoMotor(20, &knee, servoController, pwm);
+  hipyMotor = new ServoMotor(20, &capsule, servoController, pwm);
+  hipxMotor = new ServoMotor(20, &shoulder, servoController, pwm);
+  kneeMotor = new ServoMotor(20, &knee, servoController, pwm);
 
-  servoController->addMotor(hipyController);
-  servoController->addMotor(hipxController);
-  servoController->addMotor(kneeController);
+  servoController->addMotor(hipyMotor);
+  servoController->addMotor(hipxMotor);
+  servoController->addMotor(kneeMotor);
 
-  leg = new LegController(40, hipyController, hipxController, kneeController, servoController);
+  leg = new LegController(108, 132, 15, 60, 40, hipyMotor, hipxMotor, kneeMotor, servoController);
   leg->addPosition(90,180,0);
   leg->addPosition(90,130,140);
   leg->addPosition(90,180,0);
@@ -377,9 +379,9 @@ void setup()
 
   taskList = (ITask**)malloc(sizeof(ITask*) * NUM_TASKS);
   memset(taskList, 0, sizeof(ITask*) * NUM_TASKS);
-  addTask(hipxController);
-  addTask(hipyController);
-  addTask(kneeController);
+  addTask(hipxMotor);
+  addTask(hipyMotor);
+  addTask(kneeMotor);
   addTask(leg);
 
 	Serial.println("Ready!");
