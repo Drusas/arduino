@@ -4,6 +4,10 @@
 #include "IKModel.h"
 #include "ServoController.h"
 
+#define DEBUG_MAIN 0
+
+Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x40);
+
 enum MotionMode {
   NONE = 0,
   MAN = 1,
@@ -12,8 +16,14 @@ enum MotionMode {
   POINT = 4,
 };
 
+uint8_t servonum = 0;
+uint16_t minPulse = SERVOMIN;
+uint16_t maxPulse = SERVOMAX;
+
+Joint* joints[3];
+Joint capsule, shoulder, knee;
 MotionMode motionMode = MotionMode::NONE;
-ServoController* servoController;
+IServoController* servoController;
 Sweeper* hipyController;
 Sweeper* hipxController;
 Sweeper* kneeController;
@@ -37,7 +47,9 @@ void cmd_mode(SerialCommands* sender) {
 		return;
 	}
 
-  if (strcmp(mode_str, "MAN") == 0) {
+  if (strcmp(mode_str, "NONE") == 0) {
+    motionMode = MotionMode::NONE;
+  } else if (strcmp(mode_str, "MAN") == 0) {
     motionMode = MotionMode::MAN;
   } else if (strcmp(mode_str, "POSE") == 0) {
     motionMode = MotionMode::POSE;
@@ -59,6 +71,10 @@ void cmd_servo_enable(SerialCommands* sender) {
   servoController->setEnabled(!servoController->getEnabled());
   sender->GetSerial()->print("SERVO ENABLE: ");
 	sender->GetSerial()->println(servoController->getEnabled());
+}
+
+void cmd_home(SerialCommands* sender) {
+  servoController->homeMotors();
 }
 
 void cmd_hipx(SerialCommands* sender) {
@@ -152,7 +168,7 @@ void cmd_target(SerialCommands* sender) {
   sender->GetSerial()->print(degrees(j.hx)); sender->GetSerial()->print(",");
   sender->GetSerial()->print(degrees(j.k)); sender->GetSerial()->println(")");
 
-  if (DEBUG > 0)
+  if (DEBUG_MAIN > 0)
   {
     Point target;
     target.x = atof(x_str);
@@ -161,8 +177,8 @@ void cmd_target(SerialCommands* sender) {
       femur->updateIK(target);
     }
 
-    float f = toDegrees(femur->getAngle());
-    float t = 180 - toDegrees(tibia->getAngle());
+    float f = Util::toDegrees(femur->getAngle());
+    float t = 180 - Util::toDegrees(tibia->getAngle());
     
 
     sender->GetSerial()->print("Target: (");
@@ -179,7 +195,7 @@ void cmd_target(SerialCommands* sender) {
 
     // CONFIRM MATH
     // SET TO THE ANGLES JUST RETURNED
-    float to = toDegrees(tibia->getAngle());
+    float to = Util::toDegrees(tibia->getAngle());
     knee.cmdAngle = (uint8_t)to;
     sender->GetSerial()->println();
 
@@ -205,8 +221,8 @@ void cmd_target(SerialCommands* sender) {
     sender->GetSerial()->print(p.x); sender->GetSerial()->print(","); 
     sender->GetSerial()->print(p.y); sender->GetSerial()->println(")");  
 
-    f = toDegrees(femur->getAngle());
-    t = 180 - toDegrees(tibia->getAngle());
+    f = Util::toDegrees(femur->getAngle());
+    t = 180 - Util::toDegrees(tibia->getAngle());
 
     shoulder.cmdAngle = f;
     knee.cmdAngle = t;
@@ -253,7 +269,7 @@ SerialCommand cmd_knee_("KNEE", cmd_knee);
 SerialCommand cmd_status_("STATUS", cmd_status);
 SerialCommand cmd_target_("TARGET", cmd_target);
 SerialCommand cmd_angle_("ANGLE", cmd_angle);
-// SerialCommand cmd_home_("HOME", cmd_home);
+SerialCommand cmd_home_("HOME", cmd_home);
 
 void setup() 
 {
@@ -268,14 +284,14 @@ void setup()
   serial_commands_.AddCommand(&cmd_status_);
   serial_commands_.AddCommand(&cmd_target_);
   serial_commands_.AddCommand(&cmd_angle_);
-  // serial_commands_.AddCommand(&cmd_home_);
+  serial_commands_.AddCommand(&cmd_home_);
 
   pwm.begin();
   pwm.setOscillatorFrequency(27000000);  // The int.osc. is closer to 27MHz  
   pwm.setPWMFreq(SERVO_FREQ);  // Analog servos run at ~50 Hz updates
   delay(10);
 
-  servoController = new ServoController(3);
+  
 
   capsule.servoIndex = 0;
   joints[0] = &capsule;
@@ -290,18 +306,27 @@ void setup()
   capsule.minAngle = 0;
   capsule.maxAngle = 180;
   capsule.cmdAngle = 0;
+  capsule.homeAngle = 90;
 
   shoulder.minAngle = 0;
   shoulder.maxAngle = 180;
   shoulder.cmdAngle = 0;
+  shoulder.homeAngle = 130;
 
   knee.minAngle = 30;
   knee.maxAngle = 180;
   knee.cmdAngle = 0;
+  knee.homeAngle = 50;
 
-  hipyController = new Sweeper(20, &capsule, servoController);
-  hipxController = new Sweeper(20, &shoulder, servoController);
-  kneeController = new Sweeper(20, &knee, servoController);
+  servoController = new ServoController(3);
+  hipyController = new Sweeper(20, &capsule, servoController, pwm);
+  hipxController = new Sweeper(20, &shoulder, servoController, pwm);
+  kneeController = new Sweeper(20, &knee, servoController, pwm);
+
+  servoController->addMotor(hipyController);
+  servoController->addMotor(hipxController);
+  servoController->addMotor(kneeController);
+
   leg = new LegController(40, hipyController, hipxController, kneeController, servoController);
   leg->addPosition(90,180,0);
   leg->addPosition(90,130,140);
@@ -327,8 +352,8 @@ void setup()
       Serial.print("Target: (");
       Serial.print(points[i].x); Serial.print(","); 
       Serial.print(points[i].y); Serial.print(")" );
-      float shoulder = toDegrees(femur->getAngle());
-      float knee = 180 - toDegrees(tibia->getAngle());
+      float shoulder = Util::toDegrees(femur->getAngle());
+      float knee = 180 - Util::toDegrees(tibia->getAngle());
       uint8_t s = (uint8_t)shoulder;
       uint8_t k = (uint8_t)knee;
       Serial.print("Angles: (");
@@ -340,7 +365,6 @@ void setup()
 
 void loop() 
 {
-  
 	serial_commands_.ReadSerial();
   if (motionMode == WALK) {
     leg->Update();

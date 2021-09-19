@@ -1,15 +1,14 @@
 #ifndef _MOTION_H
 #define _MOTION_H
 
-#define DEBUG 2
-// #include "ServoController.h"
 #include <Arduino.h>
 #include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
 #include "IKModel.h"
+#include "IMotor.h"
+#include "IServoController.h"
 
-
-Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x40);
+#define DEBUG_MOTION 0
 
 #define SERVOMIN  95 // This is the 'minimum' pulse length count (out of 4096)
 #define SERVOMAX  455 // This is the 'maximum' pulse length count (out of 4096)
@@ -17,11 +16,6 @@ Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x40);
 #define SERVO_FREQ 50 
 #define DELAY 2000
 #define LOOP_DELAY 2000 
-// #define DEBUG 0
-
-uint8_t servonum = 0;
-uint16_t minPulse = SERVOMIN;
-uint16_t maxPulse = SERVOMAX;
 
 struct Joint {
   uint8_t servoIndex;
@@ -31,14 +25,13 @@ struct Joint {
   uint8_t maxAngle;
   uint8_t cmdAngle;
   uint8_t homeAngle;
-} knee, shoulder, capsule;
+};
 
-class ServoController;
 
-class Sweeper
+class Sweeper : public IMotor
 {
-  ServoController *servoController;
-  Adafruit_PWMServoDriver controller;
+  IServoController *servoController;
+  Adafruit_PWMServoDriver driver;
   Joint *joint;
   int actPos;
   int cmdPos;              
@@ -52,7 +45,7 @@ class Sweeper
   int clipAngle(int inputAngle);
 
 public: 
-  Sweeper(int interval, Joint *servoJoint, ServoController *controller);
+  Sweeper(int interval, Joint *servoJoint, IServoController *controller, Adafruit_PWMServoDriver pwmDriver);
   void SetPosition(int angle);
   bool atPosition();
   int cmdPosition();
@@ -61,8 +54,6 @@ public:
   bool getHomed(); 
   void Update();
 };
-
-Joint* joints[3];
 
 struct LegPosition {
   uint8_t capsule;
@@ -73,10 +64,10 @@ struct LegPosition {
 class LegController
 {
   static const uint8_t NUM_POSITIONS = 10;
-  ServoController *servoController;
-  Sweeper *capsuleController;
-  Sweeper *shoulderController;
-  Sweeper *kneeController;
+  IServoController *servoController;
+  IMotor *capsuleController;
+  IMotor *shoulderController;
+  IMotor *kneeController;
   LegPosition positionBuffer[NUM_POSITIONS];
   uint8_t posIdx, bufferIdx;
   int  updateInterval;
@@ -85,7 +76,7 @@ class LegController
   void incrementPosition();
     
  public:
-  LegController(int interval, Sweeper *capsule, Sweeper *shoulder, Sweeper *knee, ServoController *controller);
+  LegController(int interval, IMotor *capsule, IMotor *shoulder, IMotor *knee, IServoController *controller);
   void addPosition(uint8_t c, uint8_t s, uint8_t k);
   void generateTrajectory(Bone* joints);
   void Update();

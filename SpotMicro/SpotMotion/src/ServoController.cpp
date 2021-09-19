@@ -1,10 +1,11 @@
 #include <Arduino.h>
 #include "ServoController.h"
-#include "Motion.h"
 
-ServoController::ServoController(uint8_t maxNumberMotorsToManage) {
-    motors = (Sweeper**)malloc(sizeof(Sweeper*)*maxNumberMotorsToManage);
-    motorManagementIdx = 0;
+ServoController::ServoController(uint8_t maxNumberMotorsToManage) : 
+  enabled(false),
+  motorManagementIdx(0) 
+{
+    motors = (IMotor**)malloc(sizeof(IMotor*)*maxNumberMotorsToManage);
 }
 
 void ServoController::setEnabled(bool state) {
@@ -15,7 +16,7 @@ bool ServoController::getEnabled() {
   return this->enabled;
 }
 
-void ServoController::addMotor(Sweeper *motor) {
+void ServoController::addMotor(IMotor *motor) {
   if (motorManagementIdx < numMotors) {
     motors[motorManagementIdx++] = motor;
   }
@@ -23,10 +24,16 @@ void ServoController::addMotor(Sweeper *motor) {
 
 bool ServoController::getHomed() {
   for (uint8_t i = 0; i < motorManagementIdx; i++) {
-    Sweeper *s = motors[i];
+    IMotor *s = motors[i];
     if (!s->getHomed()) {
       return false;
     }
   }
   return true;
+}
+
+void ServoController::homeMotors() {
+  for (uint8_t i = 0; i < motorManagementIdx; i++) {
+    motors[i]->home();
+  }
 }

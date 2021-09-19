@@ -1,10 +1,10 @@
 #include <Arduino.h>
 #include "Motion.h"
-#include "ServoController.h"
 
-Sweeper::Sweeper(int interval, Joint *servoJoint, ServoController *controller)
+Sweeper::Sweeper(int interval, Joint *servoJoint, IServoController *controller, Adafruit_PWMServoDriver pwmDriver)
 {
   servoController = controller;
+  driver = pwmDriver;
   updateInterval = interval;
   joint = servoJoint;
   cmdPos = joint->cmdAngle;
@@ -61,7 +61,8 @@ int Sweeper::actPosition() {
 void Sweeper::home() {
   if (servoController->getEnabled()) {
     long pulseLength = map(joint->homeAngle, 0, 180, joint->minPulse, joint->maxPulse);
-    pwm.setPWM(joint->servoIndex, 0, pulseLength);
+    driver.setPWM(joint->servoIndex, 0, pulseLength);
+    cmdPos = actPos = joint->homeAngle;
     homed = true;
   }
 }
@@ -76,14 +77,14 @@ void Sweeper::Update()
     return;
   }
 
-  if((millis() - lastUpdate) > updateInterval)  // time to update
+  if ((millis() - lastUpdate) > updateInterval)  // time to update
   {
     lastUpdate = millis();
     if (actPos != cmdPos) {
         incrementActualPosition();
         long pulseLength = map(actPos, 0, 180, joint->minPulse, joint->maxPulse);
-        pwm.setPWM(joint->servoIndex, 0, pulseLength);
-        if (DEBUG > 0) {
+        driver.setPWM(joint->servoIndex, 0, pulseLength);
+        if (DEBUG_MOTION > 0) {
           // Serial.print(cmdPos); Serial.print(" ,"); Serial.print(actPos); Serial.print(" ,"); Serial.println(atPosition()); 
         }
       }
@@ -91,7 +92,7 @@ void Sweeper::Update()
   }
 }
 
-LegController::LegController(int interval, Sweeper *capsule, Sweeper *shoulder, Sweeper *knee, ServoController *controller) {
+LegController::LegController(int interval, IMotor *capsule, IMotor *shoulder, IMotor *knee, IServoController *controller) {
   servoController = controller;
   updateInterval = interval;
   capsuleController = capsule;
@@ -113,8 +114,8 @@ void LegController::generateTrajectory(Bone* joints) {
     for (int j = 0; j < 15; j++) {
       joints->updateIK(points[i]);
     }
-    float shoulder = toDegrees(joints->getAngle());
-    float knee = 180 - toDegrees(joints->getChild()->getAngle());
+    float shoulder = Util::toDegrees(joints->getAngle());
+    float knee = 180 - Util::toDegrees(joints->getChild()->getAngle());
     uint8_t s = (uint8_t)shoulder;
     uint8_t k = (uint8_t)knee;
     positionBuffer[i].shoulder = s;
@@ -122,6 +123,10 @@ void LegController::generateTrajectory(Bone* joints) {
   }
   delete points;
 }
+
+void LegController::incrementPosition() {
+    posIdx = ++posIdx % NUM_POSITIONS;
+  }
 
 void LegController::Update() {
   if (!servoController->getEnabled()) {

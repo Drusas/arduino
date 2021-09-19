@@ -3,14 +3,6 @@
 
 #include <Arduino.h>
 
-float toDegrees(float radians) {
-  return radians / 2 / PI * 360;
-}
-
-float toRadians(float degrees) {
-  return degrees / 360 * 2 * PI;
-}
-
 struct Point {
   float x;
   float y;
