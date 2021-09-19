@@ -6,6 +6,10 @@
 
 #define DEBUG_MAIN 0
 
+#define NUM_TASKS 10
+IUpdate **taskList;
+uint8_t managedTaskIdx = 0;
+
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x40);
 
 enum MotionMode {
@@ -34,6 +38,21 @@ Bone *femur, *tibia;
 char serial_command_buffer_[32];
 SerialCommands serial_commands_(&Serial, serial_command_buffer_, sizeof(serial_command_buffer_), "\r\n", " ");
 
+void addTask(IUpdate *task) {
+  if (managedTaskIdx < NUM_TASKS) {
+    taskList[managedTaskIdx++] = task;
+  }
+}
+
+void updateTasks() {
+  for (uint8_t i = 0; i < NUM_TASKS; i++) {
+    IUpdate* t = taskList[i];
+    if (t != 0) {
+      t->Update();
+    }
+  }
+}
+
 void cmd_unrecognized(SerialCommands* sender, const char* cmd) {
 	sender->GetSerial()->print("Unrecognized command [");
 	sender->GetSerial()->print(cmd);
@@ -49,16 +68,34 @@ void cmd_mode(SerialCommands* sender) {
 
   if (strcmp(mode_str, "NONE") == 0) {
     motionMode = MotionMode::NONE;
-  } else if (strcmp(mode_str, "MAN") == 0) {
+    hipxController->setEnabled(false);
+    hipyController->setEnabled(false);
+    kneeController->setEnabled(false);
+    leg->setEnabled(false);
+  } 
+  else if (strcmp(mode_str, "MAN") == 0) {
     motionMode = MotionMode::MAN;
-  } else if (strcmp(mode_str, "POSE") == 0) {
+    hipxController->setEnabled(true);
+    hipyController->setEnabled(true);
+    kneeController->setEnabled(true);
+    leg->setEnabled(false);
+  } 
+  else if (strcmp(mode_str, "POSE") == 0) {
     motionMode = MotionMode::POSE;
-  } else if (strcmp(mode_str, "WALK") == 0) {
-    motionMode = MotionMode::WALK;
+  } 
+  else if (strcmp(mode_str, "WALK") == 0) {
     leg->generateTrajectory(femur);
-  } else if (strcmp(mode_str, "POINT") == 0) {
+    motionMode = MotionMode::WALK;
+    motionMode = MotionMode::MAN;
+    hipxController->setEnabled(true);
+    hipyController->setEnabled(true);
+    kneeController->setEnabled(true);
+    leg->setEnabled(true);
+  } 
+  else if (strcmp(mode_str, "POINT") == 0) {
     motionMode = MotionMode::POINT;
-  } else {
+  } 
+  else {
     sender->GetSerial()->print("ERROR UNRECOGNIZED MODE: ");
     sender->GetSerial()->println(mode_str);
   }
@@ -291,8 +328,6 @@ void setup()
   pwm.setPWMFreq(SERVO_FREQ);  // Analog servos run at ~50 Hz updates
   delay(10);
 
-  
-
   capsule.servoIndex = 0;
   joints[0] = &capsule;
   shoulder.servoIndex = 1;
@@ -339,6 +374,13 @@ void setup()
   leg->addPosition(90,180,0);
   leg->addPosition(90,130,140);
 
+  taskList = (IUpdate**)malloc(sizeof(IUpdate*) * NUM_TASKS);
+  memset(taskList, 0, sizeof(IUpdate*) * NUM_TASKS);
+  addTask(hipxController);
+  addTask(hipyController);
+  addTask(kneeController);
+  addTask(leg);
+
 	Serial.println("Ready!");
 
   tibia = new Bone(108, 0, 0.0, 132, 0);
@@ -366,13 +408,5 @@ void setup()
 void loop() 
 {
 	serial_commands_.ReadSerial();
-  if (motionMode == WALK) {
-    leg->Update();
- }  
- 
- if (motionMode == MAN || motionMode == WALK) {
-    kneeController->Update();
-    hipxController->Update();
-    hipyController->Update();
-  }
+  updateTasks();
 }

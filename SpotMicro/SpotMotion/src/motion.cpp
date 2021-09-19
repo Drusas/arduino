@@ -3,9 +3,11 @@
 
 Sweeper::Sweeper(int interval, Joint *servoJoint, IServoController *controller, Adafruit_PWMServoDriver pwmDriver)
 {
+  setEnabled(false);
   servoController = controller;
   driver = pwmDriver;
   updateInterval = interval;
+  lastUpdate = 0;
   joint = servoJoint;
   cmdPos = joint->cmdAngle;
   actPos = cmdPos; 
@@ -71,28 +73,23 @@ bool Sweeper::getHomed() {
   return homed;
 }
 
-void Sweeper::Update()
-{
+void Sweeper::performUpdate() {
   if (!servoController->getEnabled() || !getHomed()) {
     return;
   }
 
-  if ((millis() - lastUpdate) > updateInterval)  // time to update
-  {
-    lastUpdate = millis();
-    if (actPos != cmdPos) {
-        incrementActualPosition();
-        long pulseLength = map(actPos, 0, 180, joint->minPulse, joint->maxPulse);
-        driver.setPWM(joint->servoIndex, 0, pulseLength);
-        if (DEBUG_MOTION > 0) {
-          // Serial.print(cmdPos); Serial.print(" ,"); Serial.print(actPos); Serial.print(" ,"); Serial.println(atPosition()); 
-        }
+  if (actPos != cmdPos) {
+      incrementActualPosition();
+      long pulseLength = map(actPos, 0, 180, joint->minPulse, joint->maxPulse);
+      driver.setPWM(joint->servoIndex, 0, pulseLength);
+      if (DEBUG_MOTION > 0) {
+        // Serial.print(cmdPos); Serial.print(" ,"); Serial.print(actPos); Serial.print(" ,"); Serial.println(atPosition()); 
       }
-    
-  }
+    }
 }
 
 LegController::LegController(int interval, IMotor *capsule, IMotor *shoulder, IMotor *knee, IServoController *controller) {
+  setEnabled(false);
   servoController = controller;
   updateInterval = interval;
   capsuleController = capsule;
@@ -128,16 +125,8 @@ void LegController::incrementPosition() {
     posIdx = ++posIdx % NUM_POSITIONS;
   }
 
-void LegController::Update() {
-  if (!servoController->getEnabled()) {
-    return;
-  }
-  
-  if((millis() - lastUpdate) > updateInterval)
-  {
-    // Serial.println("Leg Update");
-    lastUpdate = millis();
-    // Serial.print(capsuleController->atPosition()); Serial.print(" ,"); Serial.print(shoulderController->atPosition()); Serial.print(" ,"); Serial.println(kneeController->atPosition());
+void LegController::performUpdate() {
+  // Serial.print(capsuleController->atPosition()); Serial.print(" ,"); Serial.print(shoulderController->atPosition()); Serial.print(" ,"); Serial.println(kneeController->atPosition());
     if (capsuleController->atPosition() &&
         shoulderController->atPosition() &&
         kneeController->atPosition()) {
@@ -147,6 +136,5 @@ void LegController::Update() {
           // Serial.print(capsuleController->cmdPosition()); Serial.print(" ,"); Serial.print(shoulderController->cmdPosition()); Serial.print(" ,"); Serial.println(kneeController->cmdPosition());
           incrementPosition();
         }
-  }
 }
 

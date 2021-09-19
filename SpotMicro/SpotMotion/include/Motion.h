@@ -1,11 +1,12 @@
 #ifndef _MOTION_H
 #define _MOTION_H
 
+#include <Adafruit_PWMServoDriver.h>
 #include <Arduino.h>
 #include <Wire.h>
-#include <Adafruit_PWMServoDriver.h>
 #include "IKModel.h"
 #include "IMotor.h"
+#include "IUpdate.h"
 #include "IServoController.h"
 
 #define DEBUG_MOTION 0
@@ -27,22 +28,22 @@ struct Joint {
   uint8_t homeAngle;
 };
 
-
-class Sweeper : public IMotor
+class Sweeper : public IMotor, public IUpdate
 {
   IServoController *servoController;
   Adafruit_PWMServoDriver driver;
   Joint *joint;
   int actPos;
   int cmdPos;              
-  int increment;        // increment to move for each interval
-  int  updateInterval;      // interval between updates
-  unsigned long lastUpdate; // last update of position
+  int increment;        // increment to move for each interval - THIS IS HOW WE CONTROL VELOCITY
   bool homed;
   uint8_t homePos;
 
   void incrementActualPosition();
   int clipAngle(int inputAngle);
+
+protected:
+  void performUpdate();
 
 public: 
   Sweeper(int interval, Joint *servoJoint, IServoController *controller, Adafruit_PWMServoDriver pwmDriver);
@@ -52,7 +53,6 @@ public:
   int actPosition();
   void home();
   bool getHomed(); 
-  void Update();
 };
 
 struct LegPosition {
@@ -61,7 +61,7 @@ struct LegPosition {
   uint8_t knee;
 };
 
-class LegController
+class LegController : public IUpdate
 {
   static const uint8_t NUM_POSITIONS = 10;
   IServoController *servoController;
@@ -70,16 +70,16 @@ class LegController
   IMotor *kneeController;
   LegPosition positionBuffer[NUM_POSITIONS];
   uint8_t posIdx, bufferIdx;
-  int  updateInterval;
-  unsigned long lastUpdate;
   
   void incrementPosition();
+
+protected:
+  void performUpdate();
     
  public:
   LegController(int interval, IMotor *capsule, IMotor *shoulder, IMotor *knee, IServoController *controller);
   void addPosition(uint8_t c, uint8_t s, uint8_t k);
   void generateTrajectory(Bone* joints);
-  void Update();
 };
 
 #endif
