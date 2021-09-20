@@ -34,8 +34,6 @@ ServoMotor* hipxMotor;
 ServoMotor* kneeMotor;
 LegController* leg;
 
-Bone *femur, *tibia;
-
 char serial_command_buffer_[32];
 SerialCommands serial_commands_(&Serial, serial_command_buffer_, sizeof(serial_command_buffer_), "\r\n", " ");
 
@@ -85,7 +83,7 @@ void cmd_mode(SerialCommands* sender) {
     motionMode = MotionMode::POSE;
   } 
   else if (strcmp(mode_str, "WALK") == 0) {
-    leg->generateTrajectory(femur);
+    leg->generateTrajectory();
     motionMode = MotionMode::WALK;
     motionMode = MotionMode::MAN;
     hipxMotor->setEnabled(true);
@@ -159,12 +157,6 @@ void cmd_status(SerialCommands* sender) {
   sender->GetSerial()->print(hipyMotor->atPosition()); Serial.print(" ,"); 
   sender->GetSerial()->print(hipxMotor->atPosition()); Serial.print(" ,"); 
   sender->GetSerial()->println(kneeMotor->atPosition());
-
-  sender->GetSerial()->print("End effector: (");
-  
-  Point p = femur->getEndOfChain();
-  sender->GetSerial()->print(p.x); sender->GetSerial()->print(","); 
-  sender->GetSerial()->print(p.y); sender->GetSerial()->println(")");
 }
 
 // TARGET X Y Z
@@ -209,33 +201,6 @@ void cmd_target(SerialCommands* sender) {
   sender->GetSerial()->print(degrees(j.k)); sender->GetSerial()->println(")");
 }
 
-// ANGLE X Y
-// GIVEN ANGLES RETURN ENDPOINT
-void cmd_angle(SerialCommands* sender) {
-  char* f_str = sender->Next();
-	if (f_str == NULL) {
-		sender->GetSerial()->println("ERROR NO ANGLE - hipx [ANGLE] ");
-		return;
-	}
-
-  char* t_str = sender->Next();
-	if (t_str == NULL) {
-		sender->GetSerial()->println("ERROR NO ANGLE - KNEE [ANGLE] ");
-		return;
-	}
-
-  uint8_t fa = atoi(f_str);
-  uint8_t ta = atoi(t_str);
-  // ta = 180 - ta;
-
-  femur->setAngle((float)fa);
-  tibia->setAngle((float)ta);
-
-  Point p = femur->getEndOfChain();
-  sender->GetSerial()->print("End effector: (");
-  sender->GetSerial()->print(p.x); sender->GetSerial()->print(","); 
-  sender->GetSerial()->print(p.y); sender->GetSerial()->println(")");
-}
 
 SerialCommand cmd_servo_enable_("ENABLE", cmd_servo_enable);
 SerialCommand cmd_mode_("MODE", cmd_mode);
@@ -244,7 +209,6 @@ SerialCommand cmd_hipy_("HIPY", cmd_hipy);
 SerialCommand cmd_knee_("KNEE", cmd_knee);
 SerialCommand cmd_status_("STATUS", cmd_status);
 SerialCommand cmd_target_("TARGET", cmd_target);
-SerialCommand cmd_angle_("ANGLE", cmd_angle);
 SerialCommand cmd_home_("HOME", cmd_home);
 
 void setup() 
@@ -259,7 +223,6 @@ void setup()
   serial_commands_.AddCommand(&cmd_knee_);
   serial_commands_.AddCommand(&cmd_status_);
   serial_commands_.AddCommand(&cmd_target_);
-  serial_commands_.AddCommand(&cmd_angle_);
   serial_commands_.AddCommand(&cmd_home_);
 
   pwm.begin();
@@ -302,16 +265,6 @@ void setup()
   servoController->addMotor(kneeMotor);
 
   leg = new LegController(108, 132, 15, 60, 40, hipyMotor, hipxMotor, kneeMotor, servoController);
-  leg->addPosition(90,180,0);
-  leg->addPosition(90,130,140);
-  leg->addPosition(90,180,0);
-  leg->addPosition(90,130,140);
-  leg->addPosition(90,180,0);
-  leg->addPosition(90,130,140);
-  leg->addPosition(90,180,0);
-  leg->addPosition(90,130,140);
-  leg->addPosition(90,180,0);
-  leg->addPosition(90,130,140);
 
   taskList = (ITask**)malloc(sizeof(ITask*) * NUM_TASKS);
   memset(taskList, 0, sizeof(ITask*) * NUM_TASKS);
@@ -319,9 +272,6 @@ void setup()
   addTask(hipyMotor);
   addTask(kneeMotor);
   addTask(leg);
-
-  tibia = new Bone(108, 0, 0.0, 132, 0);
-  femur = new Bone(0, 0, 0.0, 108, tibia);
 
   Serial.println("Ready!");
 }

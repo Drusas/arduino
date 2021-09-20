@@ -20,7 +20,7 @@ void LegController::addPosition(uint8_t c, uint8_t s, uint8_t k) {
   bufferIdx = ++bufferIdx % NUM_POSITIONS;
 }
 
-void LegController::generateTrajectory(Bone* joints) {
+void LegController::generateTrajectory() {
   Point* points = CurveGenerator::GenerateCircle(25, 200, 50, NUM_POSITIONS);
   ikModel.getJointAnglesFromVectors(points, NUM_POSITIONS, positionBuffer);
   delete points;

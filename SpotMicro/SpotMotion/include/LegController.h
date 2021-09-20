@@ -36,7 +36,7 @@ protected:
  public:
   LegController(float femurLength, float tibiaLength, float zOffset, float yOffset, int interval, IMotor *hipy, IMotor *hipx, IMotor *knee, IServoController *controller);
   void addPosition(uint8_t c, uint8_t s, uint8_t k);
-  void generateTrajectory(Bone* joints);
+  void generateTrajectory();
   void moveToXYZ(float x, float y, float z);
 };
 

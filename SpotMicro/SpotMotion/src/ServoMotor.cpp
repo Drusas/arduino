@@ -12,7 +12,7 @@ ServoMotor::ServoMotor(int interval, Joint *servoJoint, IServoController *contro
   actPos = cmdPos; 
   homePos = joint->homeAngle;
   homed = false;
-  increment = 2;
+  increment = 1;
 }
 
 void ServoMotor::incrementActualPosition() {
