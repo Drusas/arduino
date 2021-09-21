@@ -35,9 +35,9 @@ void LegController::performUpdate() {
     Serial.print(hipyMotor->atPosition()); Serial.print(" ,"); Serial.print(hipxMotor->atPosition()); Serial.print(" ,"); Serial.println(kneeMotor->atPosition());
   }
   if (hipyMotor->atPosition() && hipxMotor->atPosition() && kneeMotor->atPosition()) {
-    hipyMotor->SetPosition(degrees(positionBuffer[posIdx].hy));
-    hipxMotor->SetPosition(degrees(positionBuffer[posIdx].hx));
-    kneeMotor->SetPosition(degrees(positionBuffer[posIdx].k));
+    hipyMotor->setPosition(degrees(positionBuffer[posIdx].hy));
+    hipxMotor->setPosition(degrees(positionBuffer[posIdx].hx));
+    kneeMotor->setPosition(degrees(positionBuffer[posIdx].k));
     if (DEBUG_LEGCONTROLLER > 0) {
       Serial.print(hipyMotor->cmdPosition()); Serial.print(" ,"); Serial.print(hipxMotor->cmdPosition()); Serial.print(" ,"); Serial.println(kneeMotor->cmdPosition());
     }
@@ -52,8 +52,27 @@ void LegController::moveToXYZ(float x, float y, float z) {
   p.z = z;
   JointAngles j;
   ikModel.getJointAnglesFromVectors(&p, 1, &j);
-  hipxMotor->SetPosition(degrees(j.hx));
-  hipyMotor->SetPosition(degrees(j.hy));
-  kneeMotor->SetPosition(degrees(j.k));
+  hipxMotor->setPosition(degrees(j.hx));
+  hipyMotor->setPosition(degrees(j.hy));
+  kneeMotor->setPosition(degrees(j.k));
+}
+
+IMotor* LegController::getJoint(uint8_t idx) {
+  IMotor* motor = 0;
+  switch (idx)
+  {
+  case 0:
+    motor = hipyMotor;
+    break;
+  case 1:
+    motor = hipxMotor;
+    break;
+  case 2:
+    motor = kneeMotor;
+    break;
+  default:
+    break;
+  }
+  return motor;
 }
 

@@ -43,7 +43,7 @@ int ServoMotor::clipAngle(int inputAngle) {
   return temp;
 }
 
-void ServoMotor::SetPosition(int angle) {
+void ServoMotor::setPosition(int angle) {
     cmdPos = clipAngle((angle));
 }
 
@@ -69,7 +69,7 @@ void ServoMotor::home() {
 }
 
 bool ServoMotor::getHomed() {
-  return homed;
+  return true;  // temporarily disable while adding support for all legs
 }
 
 void ServoMotor::performUpdate() {

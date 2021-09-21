@@ -7,7 +7,7 @@
 
 #define DEBUG_MAIN 0
 
-#define NUM_TASKS 10
+#define NUM_TASKS 20
 ITask **taskList;
 uint8_t managedTaskIdx = 0;
 
@@ -25,14 +25,49 @@ uint8_t servonum = 0;
 uint16_t minPulse = SERVOMIN;
 uint16_t maxPulse = SERVOMAX;
 
-Joint* joints[3];
-Joint capsule, shoulder, knee;
+enum JointIndex {
+  HIPY = 0,
+  HIPX = 1,
+  KNEE = 2,
+};
+
+Joint jointsLF[3];
+Joint jointsLR[3];
+Joint jointsRF[3];
+Joint jointsRR[3];
+
+Joint hipy, hipx, knee;
 MotionMode motionMode = MotionMode::NONE;
 IServoController* servoController;
+
+ServoMotor** servosLF;
+ServoMotor** servosLR;
+ServoMotor** servosRF;
+ServoMotor** servosRR;
+
 ServoMotor* hipyMotor;
 ServoMotor* hipxMotor;
 ServoMotor* kneeMotor;
+
+// todo remove
 LegController* leg;
+// todo remove
+
+enum LegIndex {
+  LF = 0,
+  LR = 1,
+  RF = 2,
+  RR = 3,
+};
+
+LegController* legLF;
+LegController* legLR;
+LegController* legRF;
+LegController* legRR;
+
+LegController** legList;
+
+
 
 char serial_command_buffer_[32];
 SerialCommands serial_commands_(&Serial, serial_command_buffer_, sizeof(serial_command_buffer_), "\r\n", " ");
@@ -121,7 +156,7 @@ void cmd_hipx(SerialCommands* sender) {
 	}
 
 	int angle = atoi(angle_str);
-  hipxMotor->SetPosition((angle));
+  hipxMotor->setPosition((angle));
 }
 
 void cmd_hipy(SerialCommands* sender) {
@@ -132,7 +167,7 @@ void cmd_hipy(SerialCommands* sender) {
 	}
   
 	int angle = atoi(angle_str);
-  hipyMotor->SetPosition((angle));
+  hipyMotor->setPosition((angle));
 }
 
 void cmd_knee(SerialCommands* sender) {
@@ -143,7 +178,34 @@ void cmd_knee(SerialCommands* sender) {
 	}
   
 	int angle = atoi(angle_str);
-  kneeMotor->SetPosition((angle));
+  kneeMotor->setPosition((angle));
+}
+
+// LEG XX JX ANGLE (E.G. LEG LF HIPX 90)
+void cmd_leg(SerialCommands* sender) {
+  char* leg_idx_str = sender->Next();
+	if (leg_idx_str == NULL) {
+		sender->GetSerial()->println("ERROR NO LEG IDX");
+		return;
+	}
+
+  char* joint_idx_str = sender->Next();
+	if (joint_idx_str == NULL) {
+		sender->GetSerial()->println("ERROR NO JOINT IDX");
+		return;
+	}
+
+  char* angle_str = sender->Next();
+	if (angle_str == NULL) {
+		sender->GetSerial()->println("ERROR NO ANGLE");
+		return;
+	}
+
+  uint8_t legIdx = atoi(leg_idx_str);
+  uint8_t jointIdx = atoi(joint_idx_str);
+  uint8_t angle = atoi(angle_str);
+
+  legList[legIdx]->getJoint(jointIdx)->setPosition(angle);
 }
 
 void cmd_status(SerialCommands* sender) {
@@ -201,7 +263,6 @@ void cmd_target(SerialCommands* sender) {
   sender->GetSerial()->print(degrees(j.k)); sender->GetSerial()->println(")");
 }
 
-
 SerialCommand cmd_servo_enable_("ENABLE", cmd_servo_enable);
 SerialCommand cmd_mode_("MODE", cmd_mode);
 SerialCommand cmd_hipx_("HIPX", cmd_hipx);
@@ -210,12 +271,10 @@ SerialCommand cmd_knee_("KNEE", cmd_knee);
 SerialCommand cmd_status_("STATUS", cmd_status);
 SerialCommand cmd_target_("TARGET", cmd_target);
 SerialCommand cmd_home_("HOME", cmd_home);
+SerialCommand cmd_leg_("LEG", cmd_leg);
 
-void setup() 
-{
-	Serial.begin(57600);
-
-	serial_commands_.SetDefaultHandler(cmd_unrecognized);
+void configureCommands() {
+  serial_commands_.SetDefaultHandler(cmd_unrecognized);
 	serial_commands_.AddCommand(&cmd_servo_enable_);
   serial_commands_.AddCommand(&cmd_mode_);
   serial_commands_.AddCommand(&cmd_hipx_);
@@ -225,59 +284,205 @@ void setup()
   serial_commands_.AddCommand(&cmd_target_);
   serial_commands_.AddCommand(&cmd_home_);
 
-  pwm.begin();
-  pwm.setOscillatorFrequency(27000000);  // The int.osc. is closer to 27MHz  
-  pwm.setPWMFreq(SERVO_FREQ);  // Analog servos run at ~50 Hz updates
-  delay(10);
+  Serial.println("configureCommands COMPLETE");
+}
 
-  capsule.servoIndex = 0;
-  joints[0] = &capsule;
-  shoulder.servoIndex = 1;
-  joints[1] = &shoulder;
-  knee.servoIndex = 2;
-  joints[2] = &knee;
+void configureJoints() {
+  
+  // LEFT FRONT
+  jointsLF[HIPY].servoIndex = 4;
+  jointsLF[HIPY].minAngle = 0;
+  jointsLF[HIPY].maxAngle = 180;
+  jointsLF[HIPY].homeAngle = 90;
 
-  capsule.minPulse = shoulder.minPulse = knee.minPulse = SERVOMIN;
-  capsule.maxPulse = shoulder.maxPulse = knee.maxPulse = SERVOMAX;
+  jointsLF[HIPX].servoIndex = 2;
+  jointsLF[HIPX].minAngle = 0;
+  jointsLF[HIPX].maxAngle = 180;
+  jointsLF[HIPX].homeAngle = 130;
 
-  capsule.minAngle = 0;
-  capsule.maxAngle = 180;
-  capsule.cmdAngle = 0;
-  capsule.homeAngle = 90;
+  jointsLF[KNEE].servoIndex = 0;
+  jointsLF[KNEE].minAngle = 30;
+  jointsLF[KNEE].maxAngle = 180;
+  jointsLF[KNEE].homeAngle = 150;
 
-  shoulder.minAngle = 0;
-  shoulder.maxAngle = 180;
-  shoulder.cmdAngle = 0;
-  shoulder.homeAngle = 130;
+  // LEFT REAR
+  jointsLR[HIPY].servoIndex = 11;
+  jointsLR[HIPY].minAngle = 0;
+  jointsLR[HIPY].maxAngle = 180;
+  jointsLR[HIPY].homeAngle = 90;
 
-  knee.minAngle = 30;
-  knee.maxAngle = 180;
-  knee.cmdAngle = 0;
-  knee.homeAngle = 50;
+  jointsLR[HIPX].servoIndex = 13;
+  jointsLR[HIPX].minAngle = 0;
+  jointsLR[HIPX].maxAngle = 180;
+  jointsLR[HIPX].homeAngle = 130;
 
+  jointsLR[KNEE].servoIndex = 15;
+  jointsLR[KNEE].minAngle = 30;
+  jointsLR[KNEE].maxAngle = 180;
+  jointsLR[KNEE].homeAngle = 150;
+
+  // RIGHT FRONT
+  jointsRF[HIPY].servoIndex = 5;
+  jointsRF[HIPY].minAngle = 180;
+  jointsRF[HIPY].maxAngle = 0;
+  jointsRF[HIPY].homeAngle = 90;
+
+  jointsRF[HIPX].servoIndex = 3;
+  jointsRF[HIPX].minAngle = 180;
+  jointsRF[HIPX].maxAngle = 0;
+  jointsRF[HIPX].homeAngle = 50;
+
+  jointsRF[KNEE].servoIndex = 1;
+  jointsRF[KNEE].minAngle = 170;
+  jointsRF[KNEE].maxAngle = 0;
+  jointsRF[KNEE].homeAngle = 170;
+
+  // RIGHT REAR
+  jointsRR[HIPY].servoIndex = 10;
+  jointsRR[HIPY].minAngle = 180;
+  jointsRR[HIPY].maxAngle = 0;
+  jointsRR[HIPY].homeAngle = 90;
+
+  jointsRR[HIPX].servoIndex = 12;
+  jointsRR[HIPX].minAngle = 180;
+  jointsRR[HIPX].maxAngle = 0;
+  jointsRR[HIPX].homeAngle = 50;
+
+  jointsRR[KNEE].servoIndex = 14;
+  jointsRR[KNEE].minAngle = 180;
+  jointsRR[KNEE].maxAngle = 0;
+  jointsRR[KNEE].homeAngle = 170;
+
+  Serial.println("configureJoints COMPLETE");
+}
+
+void configureServos() {
   servoController = new ServoController(3);
-  hipyMotor = new ServoMotor(20, &capsule, servoController, pwm);
-  hipxMotor = new ServoMotor(20, &shoulder, servoController, pwm);
+
+  servosLF = (ServoMotor**) malloc(sizeof(ServoMotor*) * 3);
+  servosLF[HIPY] = new ServoMotor(20, &jointsLF[HIPY], servoController, pwm);
+  servosLF[HIPX] = new ServoMotor(20, &jointsLF[HIPX], servoController, pwm);
+  servosLF[KNEE] = new ServoMotor(20, &jointsLF[KNEE], servoController, pwm);
+
+  servosLR = (ServoMotor**) malloc(sizeof(ServoMotor*) * 3);
+  servosLR[HIPY] = new ServoMotor(20, &jointsLR[HIPY], servoController, pwm);
+  servosLR[HIPX] = new ServoMotor(20, &jointsLR[HIPX], servoController, pwm);
+  servosLR[KNEE] = new ServoMotor(20, &jointsLR[KNEE], servoController, pwm);
+
+  servosRF = (ServoMotor**) malloc(sizeof(ServoMotor*) * 3);
+  servosRF[HIPY] = new ServoMotor(20, &jointsRF[HIPY], servoController, pwm);
+  servosRF[HIPX] = new ServoMotor(20, &jointsRF[HIPX], servoController, pwm);
+  servosRF[KNEE] = new ServoMotor(20, &jointsRF[KNEE], servoController, pwm);
+
+  servosRR = (ServoMotor**) malloc(sizeof(ServoMotor*) * 3);
+  servosRR[HIPY] = new ServoMotor(20, &jointsRR[HIPY], servoController, pwm);
+  servosRR[HIPX] = new ServoMotor(20, &jointsRR[HIPX], servoController, pwm);
+  servosRR[KNEE] = new ServoMotor(20, &jointsRR[KNEE], servoController, pwm);
+
+  servoController->addMotor(servosLF[HIPY]);
+  servoController->addMotor(servosLF[HIPX]);
+  servoController->addMotor(servosLF[KNEE]);
+
+  servoController->addMotor(servosLR[HIPY]);
+  servoController->addMotor(servosLR[HIPX]);
+  servoController->addMotor(servosLR[KNEE]);
+
+  servoController->addMotor(servosRF[HIPY]);
+  servoController->addMotor(servosRF[HIPX]);
+  servoController->addMotor(servosRF[KNEE]);
+
+  servoController->addMotor(servosRR[HIPY]);
+  servoController->addMotor(servosRR[HIPX]);
+  servoController->addMotor(servosRR[KNEE]);
+
+  // todo remove
+  hipyMotor = new ServoMotor(20, &hipy, servoController, pwm);
+  hipxMotor = new ServoMotor(20, &hipx, servoController, pwm);
   kneeMotor = new ServoMotor(20, &knee, servoController, pwm);
 
   servoController->addMotor(hipyMotor);
   servoController->addMotor(hipxMotor);
   servoController->addMotor(kneeMotor);
+  // todo remove
 
+  Serial.println("configureServos COMPLETE");
+}
+
+void configureLegs() {
+
+  legLF = new LegController(108, 132, 15, 60, 40, servosLF[HIPY], servosLF[HIPX], servosLF[KNEE], servoController);
+  legLR = new LegController(108, 132, 15, 60, 40, servosLR[HIPY], servosLR[HIPX], servosLR[KNEE], servoController);
+  legRF = new LegController(108, 132, 15, 60, 40, servosRF[HIPY], servosRF[HIPX], servosRF[KNEE], servoController);
+  legRR = new LegController(108, 132, 15, 60, 40, servosRR[HIPY], servosRR[HIPX], servosRR[KNEE], servoController);
+
+  legList = (LegController**) (malloc(sizeof(LegController*) * 4));
+  legList[LF] = legLF;
+  legList[LR] = legLR;
+  legList[RF] = legRF;
+  legList[RR] = legRR;
+
+  // todo remove
   leg = new LegController(108, 132, 15, 60, 40, hipyMotor, hipxMotor, kneeMotor, servoController);
+  // todo remove
 
+  Serial.println("configureLegs COMPLETE");
+}
+
+void configureTasks() {
   taskList = (ITask**)malloc(sizeof(ITask*) * NUM_TASKS);
   memset(taskList, 0, sizeof(ITask*) * NUM_TASKS);
+  
+  addTask(servosLF[HIPY]);
+  addTask(servosLF[HIPX]);
+  addTask(servosLF[KNEE]);
+
+  addTask(servosLR[HIPY]);
+  addTask(servosLR[HIPX]);
+  addTask(servosLR[KNEE]);
+
+  addTask(servosRF[HIPY]);
+  addTask(servosRF[HIPX]);
+  addTask(servosRF[KNEE]);
+
+  addTask(servosRR[HIPY]);
+  addTask(servosRR[HIPX]);
+  addTask(servosRR[KNEE]);
+
+  addTask(legLF);
+  addTask(legLR);
+  addTask(legRF);
+  addTask(legRR);
+
+
+  // todo remove
   addTask(hipxMotor);
   addTask(hipyMotor);
   addTask(kneeMotor);
   addTask(leg);
+  // todo remove
+}
 
+void setup() 
+{
+	Serial.begin(57600);
+  
+  configureCommands();
+
+  pwm.begin();
+  pwm.setOscillatorFrequency(27000000);  // The int.osc. is closer to 27MHz  
+  pwm.setPWMFreq(SERVO_FREQ);  // Analog servos run at ~50 Hz updates
+  delay(10);
+
+  configureJoints();
+  configureServos();
+  // configureLegs();
+  // configureTasks();
+  
   Serial.println("Ready!");
 }
 
 void loop() 
 {
 	serial_commands_.ReadSerial();
-  updateTasks();
+  // updateTasks();
 }

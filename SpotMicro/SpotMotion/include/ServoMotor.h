@@ -46,7 +46,7 @@ protected:
 
 public: 
   ServoMotor(int interval, Joint *servoJoint, IServoController *controller, Adafruit_PWMServoDriver pwmDriver);
-  void SetPosition(int angle);
+  void setPosition(int angle);
   bool atPosition();
   int cmdPosition();
   int actPosition();

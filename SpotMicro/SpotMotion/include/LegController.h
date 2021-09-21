@@ -38,6 +38,7 @@ protected:
   void addPosition(uint8_t c, uint8_t s, uint8_t k);
   void generateTrajectory();
   void moveToXYZ(float x, float y, float z);
+  IMotor* getJoint(uint8_t idx);
 };
 
 #endif

@@ -4,7 +4,7 @@
 
 class IMotor {
 public:
-  virtual void SetPosition(int angle) = 0;
+  virtual void setPosition(int angle) = 0;
   virtual bool atPosition() = 0;
   virtual int cmdPosition() = 0;
   virtual int actPosition() = 0;
