@@ -69,7 +69,7 @@ void ServoMotor::home() {
 }
 
 bool ServoMotor::getHomed() {
-  return homed;
+  return true;  // TEMP DISABLE
 }
 
 void ServoMotor::performUpdate() {

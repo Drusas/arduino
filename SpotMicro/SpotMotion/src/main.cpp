@@ -34,6 +34,101 @@ ServoMotor* hipxMotor;
 ServoMotor* kneeMotor;
 LegController* leg;
 
+int availableMemory() {
+  int size = 1024; // Use 2048 with ATmega328
+  byte *buf;
+
+  while ((buf = (byte *) malloc(--size)) == NULL)
+    ;
+
+  free(buf);
+
+  return size;
+}
+
+void setLegPWMPins(uint8_t idx) {
+  if (idx > 3) {
+    return;
+  }
+
+  uint8_t hy, hx, k;
+  hy = hx = k = 99;
+  servoController->setEnabled(false);
+  hipyMotor->setEnabled(false);
+  hipxMotor->setEnabled(false);
+  kneeMotor->setEnabled(false);
+  switch (idx)
+  {
+  case 0: // LF
+    hy = 4; hx = 2; k = 0;
+    
+    break;
+  case 1: // LR
+    hy = 11; hx = 13; k = 15;
+    break;
+  case 2: // RF
+    hy = 5; hx = 3; k = 1;
+    break;
+  case 3: // RR
+    hy = 10; hx = 12; k = 14;
+    break;
+  default:
+    break;
+  }
+
+  capsule.servoIndex = hy;
+  shoulder.servoIndex = hx;
+  knee.servoIndex = k;
+
+  switch (idx)
+  {
+  case 0:
+  case 1:
+    capsule.minAngle = 0;
+    capsule.maxAngle = 180;
+    capsule.cmdAngle = 0;
+    capsule.homeAngle = 90;
+
+    shoulder.minAngle = 0;
+    shoulder.maxAngle = 180;
+    shoulder.cmdAngle = 0;
+    shoulder.homeAngle = 130;
+
+    knee.minAngle = 30;
+    knee.maxAngle = 180;
+    knee.cmdAngle = 0;
+    knee.homeAngle = 50;
+    break;
+  case 2:
+  case 3:
+    capsule.minAngle = 180;
+    capsule.maxAngle = 0;
+    capsule.cmdAngle = 0;
+    capsule.homeAngle = 90;
+
+    shoulder.minAngle = 180;
+    shoulder.maxAngle = 0;
+    shoulder.cmdAngle = 0;
+    shoulder.homeAngle = 50;
+
+    knee.minAngle = 170;
+    knee.maxAngle = 0;
+    knee.cmdAngle = 0;
+    knee.homeAngle = 170;
+    break;
+  default:
+    break;
+  }
+
+  hipyMotor->SetPosition(capsule.homeAngle);
+  hipxMotor->SetPosition(shoulder.homeAngle);
+  kneeMotor->SetPosition(knee.homeAngle);
+
+  hipyMotor->setEnabled(true);
+  hipxMotor->setEnabled(true);
+  kneeMotor->setEnabled(true);
+}
+
 char serial_command_buffer_[32];
 SerialCommands serial_commands_(&Serial, serial_command_buffer_, sizeof(serial_command_buffer_), "\r\n", " ");
 
@@ -146,6 +241,7 @@ void cmd_knee(SerialCommands* sender) {
   kneeMotor->SetPosition((angle));
 }
 
+// STATUS
 void cmd_status(SerialCommands* sender) {
   
   sender->GetSerial()->print("CMDPOS: ");
@@ -157,6 +253,9 @@ void cmd_status(SerialCommands* sender) {
   sender->GetSerial()->print(hipyMotor->atPosition()); Serial.print(" ,"); 
   sender->GetSerial()->print(hipxMotor->atPosition()); Serial.print(" ,"); 
   sender->GetSerial()->println(kneeMotor->atPosition());
+
+  sender->GetSerial()->print("AVAIL MEM: ");
+  sender->GetSerial()->println(availableMemory());
 }
 
 // TARGET X Y Z
@@ -201,6 +300,27 @@ void cmd_target(SerialCommands* sender) {
   sender->GetSerial()->print(degrees(j.k)); sender->GetSerial()->println(")");
 }
 
+// SETLEG XX (E.G. SETLEG RR)
+void cmd_set_leg(SerialCommands* sender) {
+  char* leg_str = sender->Next();
+	if (leg_str == NULL) {
+		sender->GetSerial()->println("ERROR");
+		return;
+	}
+
+  if (strcmp(leg_str, "LF") == 0) {
+    setLegPWMPins(0);
+  }
+  else if (strcmp(leg_str, "LR") == 0) {
+    setLegPWMPins(1);
+  }
+  else if (strcmp(leg_str, "RF") == 0) {
+    setLegPWMPins(2);
+  }
+  else if (strcmp(leg_str, "RR") == 0) {
+    setLegPWMPins(3);
+  }
+}
 
 SerialCommand cmd_servo_enable_("ENABLE", cmd_servo_enable);
 SerialCommand cmd_mode_("MODE", cmd_mode);
@@ -210,6 +330,7 @@ SerialCommand cmd_knee_("KNEE", cmd_knee);
 SerialCommand cmd_status_("STATUS", cmd_status);
 SerialCommand cmd_target_("TARGET", cmd_target);
 SerialCommand cmd_home_("HOME", cmd_home);
+SerialCommand cmd_set_leg_("SETLEG", cmd_set_leg);
 
 void setup() 
 {
@@ -224,6 +345,7 @@ void setup()
   serial_commands_.AddCommand(&cmd_status_);
   serial_commands_.AddCommand(&cmd_target_);
   serial_commands_.AddCommand(&cmd_home_);
+  serial_commands_.AddCommand(&cmd_set_leg_);
 
   pwm.begin();
   pwm.setOscillatorFrequency(27000000);  // The int.osc. is closer to 27MHz  
