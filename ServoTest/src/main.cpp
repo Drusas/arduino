@@ -13,7 +13,6 @@
 
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 IServoController* servoController;
-ServoMotor* servoMotorHX, *servoMotorHY, *servoMotorKNEE;
 TaskManager* taskManager;
 
 enum JointIdx {
@@ -45,9 +44,13 @@ void cmd_servo_enable(SerialCommands* sender) {
   enabled = !enabled;
   servoController->setEnabled(enabled);
   taskManager->setTasksEnabled(enabled);
-  servoMotorHX->setEnabled(enabled);
-  servoMotorHY->setEnabled(enabled);
-  servoMotorKNEE->setEnabled(enabled);
+  for (uint8_t i = 0; i < 3; i++) {
+    motorsLF[i]->setEnabled(enabled);
+    motorsLR[i]->setEnabled(enabled);
+    motorsRF[i]->setEnabled(enabled);
+    motorsRR[i]->setEnabled(enabled);
+  }
+  
   TRACESC("SERVO ENABLE: %d\n", enabled);
 }
 
@@ -59,9 +62,7 @@ void cmd_hipx(SerialCommands* sender) {
 	}
 
 	uint8_t angle = atoi(angle_str);
-  jointsLF[HX].cmdAngle = angle;
-   servoMotorHX->setPosition(angle);
-  //motorsLF[HX]->setPosition(angle);
+  motorsLF[HX]->setPosition(angle);
 }
 
 void cmd_hipy(SerialCommands* sender) {
@@ -72,9 +73,7 @@ void cmd_hipy(SerialCommands* sender) {
 	}
   
 	uint8_t angle = atoi(angle_str);
-  jointsLF[HY].cmdAngle = angle;
-  servoMotorHY->setPosition(angle);
-  // motorsLF[HY]->setPosition(angle);
+  motorsLF[HY]->setPosition(angle);
 }
 
 void cmd_knee(SerialCommands* sender) {
@@ -85,9 +84,36 @@ void cmd_knee(SerialCommands* sender) {
 	}
   
 	uint8_t angle = atoi(angle_str);
-  jointsLF[KNEE].cmdAngle = angle;
-  servoMotorKNEE->setPosition(angle);
-  // motorsLF[KNEE]->setPosition(angle);
+  motorsLF[KNEE]->setPosition(angle);
+}
+
+void cmd_leg(SerialCommands* sender) {
+  char* hx_str = sender->Next();
+	if (hx_str == NULL) {
+		sender->GetSerial()->println("ERROR LEG [HX, HY, KNEE]");
+		return;
+	}
+  char* hy_str = sender->Next();
+  if (hx_str == NULL) {
+		sender->GetSerial()->println("ERROR LEG [HX, HY, KNEE]");
+		return;
+	}
+
+  char* knee_str = sender->Next();
+  if (hx_str == NULL) {
+		sender->GetSerial()->println("ERROR LEG [HX, HY, KNEE]");
+		return;
+	}
+  TRACESC("%s%s%s%s\n", "LEG", hx_str, hy_str, knee_str);
+  
+	uint8_t angle = atoi(hx_str);
+  motorsLF[HX]->setPosition(angle);
+
+  angle = atoi(hy_str);
+  motorsLF[HY]->setPosition(angle);
+
+  angle = atoi(knee_str);
+  motorsLF[KNEE]->setPosition(angle);
 }
 
 void configureJoints()
@@ -139,13 +165,10 @@ void configureJoints()
 
 void configureMotors() {
   servoController = new ServoController(1);
-  servoMotorHX = new ServoMotor(20, &jointsLF[HX], servoController, pwm);
-  servoMotorHY = new ServoMotor(20, &jointsLF[HY], servoController, pwm);
-  servoMotorKNEE = new ServoMotor(20, &jointsLF[KNEE], servoController, pwm);
 
-  motorsLF[HX] = servoMotorHX;
-  motorsLF[HY] = servoMotorHY;
-  motorsLF[KNEE] = servoMotorKNEE;
+  motorsLF[HX] = new ServoMotor(20, &jointsLF[HX], servoController, pwm);
+  motorsLF[HY] = new ServoMotor(20, &jointsLF[HY], servoController, pwm);
+  motorsLF[KNEE] = new ServoMotor(20, &jointsLF[KNEE], servoController, pwm);
 
   motorsLR[HX] = new ServoMotor(20, &jointsLR[HX], servoController, pwm);
   motorsLR[HY] = new ServoMotor(20, &jointsLR[HX], servoController, pwm);
@@ -164,9 +187,13 @@ void configureMotors() {
 
 void configureTasks() {
   taskManager = new TaskManager(32);
-  taskManager->addTask(servoMotorHX);
-  taskManager->addTask(servoMotorHY);
-  taskManager->addTask(servoMotorKNEE);
+  for (uint8_t i = 0; i < 3; i++) {
+    taskManager->addTask(motorsLF[i]);
+    taskManager->addTask(motorsLR[i]);
+    taskManager->addTask(motorsRF[i]);
+    taskManager->addTask(motorsRR[i]);
+  }
+  
 }
 
 SerialCommand cmd_servo_enable_("ENABLE", cmd_servo_enable);
@@ -174,6 +201,7 @@ SerialCommand cmd_servo_enable_("ENABLE", cmd_servo_enable);
 SerialCommand cmd_hipx_("HX", cmd_hipx);
 SerialCommand cmd_hipy_("HY", cmd_hipy);
 SerialCommand cmd_knee_("KNEE", cmd_knee);
+SerialCommand cmd_leg_("LEG", cmd_leg);
 // SerialCommand cmd_status_("STATUS", cmd_status);
 // SerialCommand cmd_target_("TARGET", cmd_target);
 // SerialCommand cmd_angle_("ANGLE", cmd_angle);
@@ -188,6 +216,7 @@ void setup() {
   serial_commands_.AddCommand(&cmd_hipx_);
   serial_commands_.AddCommand(&cmd_hipy_);
   serial_commands_.AddCommand(&cmd_knee_);
+  serial_commands_.AddCommand(&cmd_leg_);
   // serial_commands_.AddCommand(&cmd_status_);
   // serial_commands_.AddCommand(&cmd_target_);
   // serial_commands_.AddCommand(&cmd_angle_);
@@ -209,16 +238,4 @@ void setup() {
 void loop() {
   serial_commands_.ReadSerial();
   taskManager->updateTasks();
-
-  // if (enabled) {
-    // long pulseLength = map(hipx.cmdAngle, 0, 180, hipx.minPulse, hipx.maxPulse);
-    // pwm.setPWM(hipx.servoIndex, 0, pulseLength);
-
-    // pulseLength = map(hipy.cmdAngle, 0, 180, hipy.minPulse, hipy.maxPulse);
-    // pwm.setPWM(hipy.servoIndex, 0, pulseLength);
-    // servoMotor->performUpdate();
-
-    // pulseLength = map(knee.cmdAngle, 0, 180, knee.minPulse, knee.maxPulse);
-    // pwm.setPWM(knee.servoIndex, 0, pulseLength);
-  // }
 }
