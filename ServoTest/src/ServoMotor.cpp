@@ -1,4 +1,5 @@
 #include "ServoMotor.h"
+#include "Utils.h"
 
 #define DEBUG_SERVOMOTOR 1
 
@@ -80,15 +81,18 @@ bool ServoMotor::getHomed() {
 
 void ServoMotor::performUpdate() {
   if (!servoController->getEnabled() || !getHomed()) {
+    TRACE("%s%d%s%d\n","NOT PERFORMING UPDATE, ENABLED: ", servoController->getEnabled(), getHomed());
     return;
   }
+
+  //TRACE("%s\n","PERFORMING UPDATE");
 
   if (actPos != cmdPos) {
       incrementActualPosition();
       long pulseLength = map(actPos, 0, 180, joint->minPulse, joint->maxPulse);
       driver.setPWM(joint->servoIndex, 0, pulseLength);
       if (DEBUG_SERVOMOTOR) {
-        Serial.print(pulseLength); Serial.print(" ,"); Serial.print(actPos); Serial.print(" ,"); Serial.println(atPosition()); 
+        TRACE("%d,%d,%d,%d\n",joint->servoIndex, pulseLength, actPos, atPosition());
       }
     }
 }

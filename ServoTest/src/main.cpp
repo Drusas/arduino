@@ -4,14 +4,8 @@
 #include "SerialCommands.h"
 #include "ServoController.h"
 #include "ServoMotor.h"
-
-#if defined NDEBUG
-    #define TRACESC(format, ...)
-    #define TRACE(format, ...)
-#else
-    #define TRACESC(format, ...)   sender->GetSerial()->printf( "%s::%s(%d) " format, __FILE__, __FUNCTION__,  __LINE__, __VA_ARGS__ )
-    #define TRACE(format, ...)   Serial.printf( "%s::%s(%d) " format, __FILE__, __FUNCTION__,  __LINE__, __VA_ARGS__ )
-#endif
+#include "TaskManager.h"
+#include "Utils.h"
 
 #define SERVO_FREQ 50 // Analog servos run at ~50 Hz updates
 #define SERVOMIN  95 // This is the 'minimum' pulse length count (out of 4096)
@@ -19,9 +13,24 @@
 
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 IServoController* servoController;
-ServoMotor* servoMotor;
+ServoMotor* servoMotorHX, *servoMotorHY, *servoMotorKNEE;
+TaskManager* taskManager;
 
-Joint hipy, hipx, knee;
+enum JointIdx {
+  HX = 0,
+  HY = 1,
+  KNEE = 2,
+};
+
+Joint jointsLF[3];
+Joint jointsLR[3];
+Joint jointsRF[3];
+Joint jointsRR[3];
+
+ServoMotor* motorsLF[3];
+ServoMotor* motorsLR[3];
+ServoMotor* motorsRF[3];
+ServoMotor* motorsRR[3];
 
 bool enabled = 0;
 
@@ -35,7 +44,10 @@ void cmd_unrecognized(SerialCommands* sender, const char* cmd) {
 void cmd_servo_enable(SerialCommands* sender) {
   enabled = !enabled;
   servoController->setEnabled(enabled);
-  servoMotor->setEnabled(enabled);
+  taskManager->setTasksEnabled(enabled);
+  servoMotorHX->setEnabled(enabled);
+  servoMotorHY->setEnabled(enabled);
+  servoMotorKNEE->setEnabled(enabled);
   TRACESC("SERVO ENABLE: %d\n", enabled);
 }
 
@@ -47,7 +59,9 @@ void cmd_hipx(SerialCommands* sender) {
 	}
 
 	uint8_t angle = atoi(angle_str);
-  hipx.cmdAngle = angle;
+  jointsLF[HX].cmdAngle = angle;
+   servoMotorHX->setPosition(angle);
+  //motorsLF[HX]->setPosition(angle);
 }
 
 void cmd_hipy(SerialCommands* sender) {
@@ -58,8 +72,9 @@ void cmd_hipy(SerialCommands* sender) {
 	}
   
 	uint8_t angle = atoi(angle_str);
-  hipy.cmdAngle = angle;
-  servoMotor->setPosition(angle);
+  jointsLF[HY].cmdAngle = angle;
+  servoMotorHY->setPosition(angle);
+  // motorsLF[HY]->setPosition(angle);
 }
 
 void cmd_knee(SerialCommands* sender) {
@@ -70,39 +85,88 @@ void cmd_knee(SerialCommands* sender) {
 	}
   
 	uint8_t angle = atoi(angle_str);
-  knee.cmdAngle = angle;
+  jointsLF[KNEE].cmdAngle = angle;
+  servoMotorKNEE->setPosition(angle);
+  // motorsLF[KNEE]->setPosition(angle);
 }
 
 void configureJoints()
 {
-  hipx.servoIndex = 4; // RR 10; // RF 5; // LR 11; // LF 4;
-  hipx.minPulse = hipy.minPulse = knee.minPulse = SERVOMIN;
-  hipx.maxPulse = hipy.maxPulse = knee.maxPulse = SERVOMAX;
-  hipx.minAngle = 0;
-  hipx.maxAngle = 180;
-  hipx.cmdAngle = 75; // RR 125; // RF 105; // LR 50; // LF 75
-  hipx.homeAngle = 75; // RR 125; // RF 105; // LR 50; // LF 75
+  jointsLF[HX].minPulse = jointsLF[HY].minPulse = jointsLF[KNEE].minPulse = SERVOMIN;
+  jointsLF[HX].maxPulse = jointsLF[HY].maxPulse = jointsLF[KNEE].maxPulse = SERVOMAX;
 
-  hipy.servoIndex = 2; // RR 12; // RF 3; // LR 13; // LF 2;
-  hipy.minAngle = 0; // RR/RF 180; // LF/LR 0;
-  hipy.maxAngle = 180; // RR/RF 0; // LF/LR 180;
-  hipy.cmdAngle = 130; // RR 50; // RF 50 // LF/LR 130;
-  hipy.homeAngle = 130; // RF/RR 50; // LF/LR 130;
+  jointsLF[HX].servoIndex = 4; // RR 10; // RF 5; // LR 11; // LF 4;
+  jointsLF[HX].minAngle = 60;
+  jointsLF[HX].maxAngle = 90;
+  jointsLF[HX].cmdAngle = 75; // RR 125; // RF 105; // LR 50; // LF 75
+  jointsLF[HX].homeAngle = 75; // RR 125; // RF 105; // LR 50; // LF 75
 
-  knee.servoIndex = 0; // RR 14; // RF 1 // LR 15; // LF 0;
-  knee.minAngle = 30; // RF/RR 170; // LF/LR 30;
-  knee.maxAngle = 0;
-  knee.cmdAngle = 50; // RF/RR 170; // LF/LR 50;
-  knee.homeAngle = 50; // RF/RR 170; // LF/LR 50;
+  jointsLF[HY].servoIndex = 2; // RR 12; // RF 3; // LR 13; // LF 2;
+  jointsLF[HY].minAngle = 0; // RR/RF 180; // LF/LR 0;
+  jointsLF[HY].maxAngle = 180; // RR/RF 0; // LF/LR 180;
+  jointsLF[HY].cmdAngle = 130; // RR 50; // RF 50 // LF/LR 130;
+  jointsLF[HY].homeAngle = 130; // RF/RR 50; // LF/LR 130;
 
-  Serial.println("configureJoints COMPLETE");
-  TRACE("%s\n", "configureMotors COMPLETE");
+  jointsLF[KNEE].servoIndex = 0; // RR 14; // RF 1 // LR 15; // LF 0;
+  jointsLF[KNEE].minAngle = 30; // RF/RR 170; // LF/LR 30;
+  jointsLF[KNEE].maxAngle = 180;
+  jointsLF[KNEE].cmdAngle = 50; // RF/RR 170; // LF/LR 50;
+  jointsLF[KNEE].homeAngle = 50; // RF/RR 170; // LF/LR 50;
+
+  jointsLR[HX].minPulse = jointsLR[HY].minPulse = jointsLR[KNEE].minPulse = SERVOMIN;
+  jointsLR[HX].maxPulse = jointsLR[HY].maxPulse = jointsLR[KNEE].maxPulse = SERVOMAX;
+
+  jointsLR[HX].servoIndex = 11; // RR 10; // RF 5; // LR 11; // LF 4;
+  jointsLR[HX].minAngle = 35;
+  jointsLR[HX].maxAngle = 65;
+  jointsLR[HX].cmdAngle = 50; // RR 125; // RF 105; // LR 50; // LF 75
+  jointsLR[HX].homeAngle = 50; // RR 125; // RF 105; // LR 50; // LF 75
+
+  jointsLR[HY].servoIndex = 13; // RR 12; // RF 3; // LR 13; // LF 2;
+  jointsLR[HY].minAngle = 0; // RR/RF 180; // LF/LR 0;
+  jointsLR[HY].maxAngle = 180; // RR/RF 0; // LF/LR 180;
+  jointsLR[HY].cmdAngle = 130; // RR 50; // RF 50 // LF/LR 130;
+  jointsLR[HY].homeAngle = 130; // RF/RR 50; // LF/LR 130;
+
+  jointsLR[KNEE].servoIndex = 15; // RR 14; // RF 1 // LR 15; // LF 0;
+  jointsLR[KNEE].minAngle = 30; // RF/RR 170; // LF/LR 30;
+  jointsLR[KNEE].maxAngle = 180;
+  jointsLR[KNEE].cmdAngle = 50; // RF/RR 170; // LF/LR 50;
+  jointsLR[KNEE].homeAngle = 50; // RF/RR 170; // LF/LR 50;
+
+  TRACE("%s\n", "configureJoints COMPLETE");
 }
 
 void configureMotors() {
   servoController = new ServoController(1);
-  servoMotor = new ServoMotor(20, &hipy, servoController, pwm);
+  servoMotorHX = new ServoMotor(20, &jointsLF[HX], servoController, pwm);
+  servoMotorHY = new ServoMotor(20, &jointsLF[HY], servoController, pwm);
+  servoMotorKNEE = new ServoMotor(20, &jointsLF[KNEE], servoController, pwm);
+
+  motorsLF[HX] = servoMotorHX;
+  motorsLF[HY] = servoMotorHY;
+  motorsLF[KNEE] = servoMotorKNEE;
+
+  motorsLR[HX] = new ServoMotor(20, &jointsLR[HX], servoController, pwm);
+  motorsLR[HY] = new ServoMotor(20, &jointsLR[HX], servoController, pwm);
+  motorsLR[KNEE] = new ServoMotor(20, &jointsLR[HX], servoController, pwm);
+
+  motorsRF[HX] = new ServoMotor(20, &jointsRF[HX], servoController, pwm);
+  motorsRF[HY] = new ServoMotor(20, &jointsRF[HX], servoController, pwm);
+  motorsRF[KNEE] = new ServoMotor(20, &jointsRF[HX], servoController, pwm);
+
+  motorsRR[HX] = new ServoMotor(20, &jointsRR[HX], servoController, pwm);
+  motorsRR[HY] = new ServoMotor(20, &jointsRR[HX], servoController, pwm);
+  motorsRR[KNEE] = new ServoMotor(20, &jointsRR[HX], servoController, pwm);
+
   TRACE("%s\n", "configureMotors COMPLETE");
+}
+
+void configureTasks() {
+  taskManager = new TaskManager(32);
+  taskManager->addTask(servoMotorHX);
+  taskManager->addTask(servoMotorHY);
+  taskManager->addTask(servoMotorKNEE);
 }
 
 SerialCommand cmd_servo_enable_("ENABLE", cmd_servo_enable);
@@ -137,13 +201,14 @@ void setup() {
 
   configureJoints();
   configureMotors();
+  configureTasks();
  
   TRACE("%s", "Spot is ready!");
 }
 
 void loop() {
   serial_commands_.ReadSerial();
-  servoMotor->Update();
+  taskManager->updateTasks();
 
   // if (enabled) {
     // long pulseLength = map(hipx.cmdAngle, 0, 180, hipx.minPulse, hipx.maxPulse);
