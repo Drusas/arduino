@@ -181,6 +181,21 @@ void cmd_knee(SerialCommands* sender) {
   kneeMotor->setPosition((angle));
 }
 
+void setupPWM()
+{
+  static bool beenHere = false;
+  if (!beenHere) {
+    Serial.println("PWM start");
+    pwm.begin();
+    pwm.setOscillatorFrequency(27000000);  // The int.osc. is closer to 27MHz  
+    pwm.setPWMFreq(SERVO_FREQ);  // Analog servos run at ~50 Hz updates
+    delay(10);
+
+    Serial.println("PWM Ready");
+    beenHere = true;
+  }
+}
+
 // LEG XX JX ANGLE (E.G. LEG LF HIPX 90)
 void cmd_leg(SerialCommands* sender) {
   char* leg_idx_str = sender->Next();
@@ -205,7 +220,16 @@ void cmd_leg(SerialCommands* sender) {
   uint8_t jointIdx = atoi(joint_idx_str);
   uint8_t angle = atoi(angle_str);
 
+  // sender->GetSerial()->print("PWM: ");
+  // sender->GetSerial()->println((void*)pwm); 
+
+  // pwm.setPWMFreq(SERVO_FREQ);
+
+  setupPWM();
   legList[legIdx]->getJoint(jointIdx)->setPosition(angle);
+  IMotor* m = legList[legIdx]->getJoint(jointIdx);
+  ServoMotor* s = (ServoMotor*)m;
+  s->performUpdate();
 }
 
 void cmd_status(SerialCommands* sender) {
@@ -283,6 +307,7 @@ void configureCommands() {
   serial_commands_.AddCommand(&cmd_status_);
   serial_commands_.AddCommand(&cmd_target_);
   serial_commands_.AddCommand(&cmd_home_);
+  serial_commands_.AddCommand(&cmd_leg_);
 
   Serial.println("configureCommands COMPLETE");
 }
@@ -291,41 +316,47 @@ void configureJoints() {
   
   // LEFT FRONT
   jointsLF[HIPY].servoIndex = 4;
-  jointsLF[HIPY].minAngle = 0;
-  jointsLF[HIPY].maxAngle = 180;
-  jointsLF[HIPY].homeAngle = 90;
+  jointsLF[HIPY].minAngle = 60;
+  jointsLF[HIPY].maxAngle = 90;
+  jointsLF[HIPY].cmdAngle = 75;
+  jointsLF[HIPY].homeAngle = 75;
 
   jointsLF[HIPX].servoIndex = 2;
   jointsLF[HIPX].minAngle = 0;
   jointsLF[HIPX].maxAngle = 180;
+  jointsLF[HIPX].cmdAngle = 130;
   jointsLF[HIPX].homeAngle = 130;
 
   jointsLF[KNEE].servoIndex = 0;
   jointsLF[KNEE].minAngle = 30;
   jointsLF[KNEE].maxAngle = 180;
-  jointsLF[KNEE].homeAngle = 150;
+  jointsLF[KNEE].cmdAngle = 50;
+  jointsLF[KNEE].homeAngle = 50;
 
   // LEFT REAR
   jointsLR[HIPY].servoIndex = 11;
-  jointsLR[HIPY].minAngle = 0;
-  jointsLR[HIPY].maxAngle = 180;
-  jointsLR[HIPY].homeAngle = 90;
+  jointsLR[HIPY].minAngle = 45;
+  jointsLR[HIPY].maxAngle = 65;
+  jointsLR[HIPY].cmdAngle = 50;
+  jointsLR[HIPY].homeAngle = 50;
 
   jointsLR[HIPX].servoIndex = 13;
   jointsLR[HIPX].minAngle = 0;
   jointsLR[HIPX].maxAngle = 180;
+  jointsLR[HIPX].cmdAngle = 130;
   jointsLR[HIPX].homeAngle = 130;
 
   jointsLR[KNEE].servoIndex = 15;
   jointsLR[KNEE].minAngle = 30;
   jointsLR[KNEE].maxAngle = 180;
-  jointsLR[KNEE].homeAngle = 150;
+  jointsLR[KNEE].cmdAngle = 50;
+  jointsLR[KNEE].homeAngle = 50;
 
   // RIGHT FRONT
   jointsRF[HIPY].servoIndex = 5;
-  jointsRF[HIPY].minAngle = 180;
-  jointsRF[HIPY].maxAngle = 0;
-  jointsRF[HIPY].homeAngle = 90;
+  jointsRF[HIPY].minAngle = 120;
+  jointsRF[HIPY].maxAngle = 90;
+  jointsRF[HIPY].homeAngle = 105;
 
   jointsRF[HIPX].servoIndex = 3;
   jointsRF[HIPX].minAngle = 180;
@@ -335,22 +366,26 @@ void configureJoints() {
   jointsRF[KNEE].servoIndex = 1;
   jointsRF[KNEE].minAngle = 170;
   jointsRF[KNEE].maxAngle = 0;
-  jointsRF[KNEE].homeAngle = 170;
+  jointsRF[KNEE].cmdAngle = 50;
+  jointsRF[KNEE].homeAngle = 50;
 
   // RIGHT REAR
   jointsRR[HIPY].servoIndex = 10;
-  jointsRR[HIPY].minAngle = 180;
-  jointsRR[HIPY].maxAngle = 0;
-  jointsRR[HIPY].homeAngle = 90;
+  jointsRR[HIPY].minAngle = 140;
+  jointsRR[HIPY].maxAngle = 110;
+  jointsRR[HIPY].cmdAngle = 125;
+  jointsRR[HIPY].homeAngle = 125;
 
   jointsRR[HIPX].servoIndex = 12;
   jointsRR[HIPX].minAngle = 180;
   jointsRR[HIPX].maxAngle = 0;
+  jointsRR[HIPX].cmdAngle = 50;
   jointsRR[HIPX].homeAngle = 50;
 
   jointsRR[KNEE].servoIndex = 14;
-  jointsRR[KNEE].minAngle = 180;
+  jointsRR[KNEE].minAngle = 170;
   jointsRR[KNEE].maxAngle = 0;
+  jointsRR[KNEE].cmdAngle = 170;
   jointsRR[KNEE].homeAngle = 170;
 
   Serial.println("configureJoints COMPLETE");
@@ -468,15 +503,15 @@ void setup()
   
   configureCommands();
 
-  pwm.begin();
-  pwm.setOscillatorFrequency(27000000);  // The int.osc. is closer to 27MHz  
-  pwm.setPWMFreq(SERVO_FREQ);  // Analog servos run at ~50 Hz updates
-  delay(10);
+  // pwm.begin();
+  // pwm.setOscillatorFrequency(27000000);  // The int.osc. is closer to 27MHz  
+  // pwm.setPWMFreq(SERVO_FREQ);  // Analog servos run at ~50 Hz updates
+  // delay(10);
 
   configureJoints();
   configureServos();
-  // configureLegs();
-  // configureTasks();
+  configureLegs();
+  configureTasks();
   
   Serial.println("Ready!");
 }
@@ -484,5 +519,5 @@ void setup()
 void loop() 
 {
 	serial_commands_.ReadSerial();
-  // updateTasks();
-}
+//   updateTasks();
+ }

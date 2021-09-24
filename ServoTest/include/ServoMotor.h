@@ -8,7 +8,7 @@
 #include "ITask.h"
 #include "IServoController.h"
 
-#define DEBUG_SERVOMOTOR 1
+
 
 #define SERVOMIN  95 // This is the 'minimum' pulse length count (out of 4096)
 #define SERVOMAX  455 // This is the 'maximum' pulse length count (out of 4096)

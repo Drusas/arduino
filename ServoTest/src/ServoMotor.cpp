@@ -1,5 +1,7 @@
 #include "ServoMotor.h"
 
+#define DEBUG_SERVOMOTOR 1
+
 ServoMotor::ServoMotor(int interval, Joint *servoJoint, IServoController *controller, Adafruit_PWMServoDriver pwmDriver)
 {
   setEnabled(false);
@@ -45,8 +47,10 @@ int ServoMotor::clipAngle(int inputAngle) {
 
 void ServoMotor::setPosition(int angle) {
     cmdPos = clipAngle((angle));
-    Serial.print("ServoMotor::setPosition:");
-    Serial.println(cmdPos);
+    if (DEBUG_SERVOMOTOR) {
+      Serial.print("ServoMotor::setPosition:");
+      Serial.println(cmdPos);
+    }
 }
 
 bool ServoMotor::atPosition() {
@@ -75,19 +79,15 @@ bool ServoMotor::getHomed() {
 }
 
 void ServoMotor::performUpdate() {
-  Serial.println("ServoMotor::performUpdate 1");
   if (!servoController->getEnabled() || !getHomed()) {
     return;
   }
 
-  Serial.println("ServoMotor::performUpdate 2");
-  //if (actPos != cmdPos) {
-    if (true) {
+  if (actPos != cmdPos) {
       incrementActualPosition();
-      //long pulseLength = map(actPos, 0, 180, joint->minPulse, joint->maxPulse);
-      long pulseLength = map(cmdPos, 0, 180, joint->minPulse, joint->maxPulse);
+      long pulseLength = map(actPos, 0, 180, joint->minPulse, joint->maxPulse);
       driver.setPWM(joint->servoIndex, 0, pulseLength);
-      if (DEBUG_SERVOMOTOR > 0) {
+      if (DEBUG_SERVOMOTOR) {
         Serial.print(pulseLength); Serial.print(" ,"); Serial.print(actPos); Serial.print(" ,"); Serial.println(atPosition()); 
       }
     }

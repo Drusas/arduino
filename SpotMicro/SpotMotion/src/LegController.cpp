@@ -58,6 +58,8 @@ void LegController::moveToXYZ(float x, float y, float z) {
 }
 
 IMotor* LegController::getJoint(uint8_t idx) {
+  Serial.print("LegController::getJoint: ");
+  Serial.println(idx);
   IMotor* motor = 0;
   switch (idx)
   {
