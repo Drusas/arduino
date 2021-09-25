@@ -1,6 +1,8 @@
 #ifndef _UTILS_H
 #define _UTILS_H
 
+// #define NDEBUG
+
 #if defined NDEBUG
     #define TRACESC(format, ...)
     #define TRACE(format, ...)

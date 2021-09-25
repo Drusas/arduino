@@ -1,7 +1,7 @@
 #include "ServoMotor.h"
 #include "Utils.h"
 
-#define DEBUG_SERVOMOTOR 1
+// #define DEBUG_SERVOMOTOR 1
 
 ServoMotor::ServoMotor(int interval, Joint *servoJoint, IServoController *controller, Adafruit_PWMServoDriver pwmDriver)
 {
@@ -48,10 +48,10 @@ int ServoMotor::clipAngle(int inputAngle) {
 
 void ServoMotor::setPosition(int angle) {
     cmdPos = clipAngle((angle));
-    if (DEBUG_SERVOMOTOR) {
-      Serial.print("ServoMotor::setPosition:");
-      Serial.println(cmdPos);
-    }
+#ifdef DEBUG_SERVOMOTOR
+    Serial.print("ServoMotor::setPosition:");
+    Serial.println(cmdPos);
+#endif
 }
 
 bool ServoMotor::atPosition() {
@@ -91,8 +91,9 @@ void ServoMotor::performUpdate() {
       incrementActualPosition();
       long pulseLength = map(actPos, 0, 180, joint->minPulse, joint->maxPulse);
       driver.setPWM(joint->servoIndex, 0, pulseLength);
-      if (DEBUG_SERVOMOTOR) {
+#ifdef DEBUG_SERVOMOTOR
         TRACE("%d,%d,%d,%d\n",joint->servoIndex, pulseLength, actPos, atPosition());
+#endif
       }
     }
-}
+//}

@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
+#include "LegController.h"
 #include "SerialCommands.h"
 #include "ServoController.h"
 #include "ServoMotor.h"
@@ -30,6 +31,8 @@ ServoMotor* motorsLF[3];
 ServoMotor* motorsLR[3];
 ServoMotor* motorsRF[3];
 ServoMotor* motorsRR[3];
+
+LegController* legLF;
 
 bool enabled = 0;
 
@@ -106,14 +109,35 @@ void cmd_leg(SerialCommands* sender) {
 	}
   TRACESC("%s%s%s%s\n", "LEG", hx_str, hy_str, knee_str);
   
-	uint8_t angle = atoi(hx_str);
-  motorsLF[HX]->setPosition(angle);
+	uint8_t angleHx = atoi(hx_str);
+  uint8_t angleHy = atoi(hy_str);
+  uint8_t angleK = atoi(knee_str);
+  legLF->moveToAngles(angleHx, angleHy, angleK);
+}
 
-  angle = atoi(hy_str);
-  motorsLF[HY]->setPosition(angle);
+void cmd_ik(SerialCommands* sender) {
+  char* hx_str = sender->Next();
+	if (hx_str == NULL) {
+		sender->GetSerial()->println("ERROR IK LEG [X, Y, Z]");
+		return;
+	}
+  char* hy_str = sender->Next();
+  if (hx_str == NULL) {
+		sender->GetSerial()->println("ERROR IK LEG [X, Y, Z]");
+		return;
+	}
 
-  angle = atoi(knee_str);
-  motorsLF[KNEE]->setPosition(angle);
+  char* knee_str = sender->Next();
+  if (hx_str == NULL) {
+		sender->GetSerial()->println("ERROR IK LEG [X, Y, Z]");
+		return;
+	}
+  TRACESC("%s %s %s %s\n", "IK", hx_str, hy_str, knee_str);
+  
+	int x = atoi(hx_str);
+  int y = atoi(hy_str);
+  int z = atoi(knee_str);
+  legLF->moveToXYZ(x, y, z);
 }
 
 void configureJoints()
@@ -196,12 +220,16 @@ void configureTasks() {
   
 }
 
+void configureLegs() {
+  legLF = new LegController(108, 132, 15, 60, 20, motorsLF[HX], motorsLF[HY], motorsLF[KNEE], servoController);
+}
 SerialCommand cmd_servo_enable_("ENABLE", cmd_servo_enable);
 // SerialCommand cmd_mode_("MODE", cmd_mode);
 SerialCommand cmd_hipx_("HX", cmd_hipx);
 SerialCommand cmd_hipy_("HY", cmd_hipy);
 SerialCommand cmd_knee_("KNEE", cmd_knee);
 SerialCommand cmd_leg_("LEG", cmd_leg);
+SerialCommand cmd_ik_("IK", cmd_ik);
 // SerialCommand cmd_status_("STATUS", cmd_status);
 // SerialCommand cmd_target_("TARGET", cmd_target);
 // SerialCommand cmd_angle_("ANGLE", cmd_angle);
@@ -209,7 +237,7 @@ SerialCommand cmd_leg_("LEG", cmd_leg);
 
 void setup() {
   Serial.begin(57600);
-
+  delay(100);
 	serial_commands_.SetDefaultHandler(cmd_unrecognized);
 	serial_commands_.AddCommand(&cmd_servo_enable_);
   // serial_commands_.AddCommand(&cmd_mode_);
@@ -218,7 +246,7 @@ void setup() {
   serial_commands_.AddCommand(&cmd_knee_);
   serial_commands_.AddCommand(&cmd_leg_);
   // serial_commands_.AddCommand(&cmd_status_);
-  // serial_commands_.AddCommand(&cmd_target_);
+  serial_commands_.AddCommand(&cmd_ik_);
   // serial_commands_.AddCommand(&cmd_angle_);
   // serial_commands_.AddCommand(&cmd_home_);
 
@@ -230,6 +258,7 @@ void setup() {
 
   configureJoints();
   configureMotors();
+  configureLegs();
   configureTasks();
  
   TRACE("%s", "Spot is ready!");
