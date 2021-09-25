@@ -27,11 +27,13 @@ class LegController : public ITask
   JointAngles positionBuffer[NUM_POSITIONS];
   uint8_t posIdx, bufferIdx;
   LegIKModel ikModel;
+  float jointTranslation;
   
   void incrementPosition();
 
 protected:
   void performUpdate();
+  void translateJoints(JointAngles *joints, uint8_t numJoints);
     
  public:
   LegController(float femurLength, float tibiaLength, float zOffset, float yOffset, int interval, IMotor *hipy, IMotor *hipx, IMotor *knee, IServoController *controller);
@@ -40,6 +42,7 @@ protected:
   void moveToXYZ(float x, float y, float z);
   void moveToAngles(uint8_t hx, uint8_t hy, uint8_t k);
   IMotor* getJoint(uint8_t idx);
+  void jointTranslationFactor(uint8_t angle);
 };
 
 #endif

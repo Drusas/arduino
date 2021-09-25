@@ -11,6 +11,7 @@ LegController::LegController(float femurLength, float tibiaLength, float zOffset
   kneeMotor = knee;
   posIdx = bufferIdx = 0;
   ikModel = LegIKModel(femurLength, tibiaLength, zOffset, yOffset);
+  jointTranslation = 0;
 }
 
 void LegController::addPosition(uint8_t c, uint8_t s, uint8_t k) {
@@ -46,12 +47,16 @@ void LegController::performUpdate() {
 }
 
 void LegController::moveToXYZ(float x, float y, float z) {
+  TRACE("%s %.2f %.2f %.2f\n", "moveToXYZ", x, y, z);
   Point p;
   p.x = x;
   p.y = y;
   p.z = z;
   JointAngles j;
   ikModel.getJointAnglesFromVectors(&p, 1, &j);
+  TRACE("%s %.2f %.2f %.2f\n", "moveToXYZ set joint angles", degrees(j.hy), degrees(j.hx), degrees(j.k));
+  translateJoints(&j, 1);
+  TRACE("%s %.2f %.2f %.2f\n", "moveToXYZ set joint angles", degrees(j.hy), degrees(j.hx), degrees(j.k));
   hipxMotor->setPosition(degrees(j.hy));
   hipyMotor->setPosition(degrees(j.hx));
   kneeMotor->setPosition(degrees(j.k));
@@ -84,3 +89,17 @@ IMotor* LegController::getJoint(uint8_t idx) {
   return motor;
 }
 
+void LegController::jointTranslationFactor(uint8_t angle) {
+  //jointTranslation = radians(angle);
+  jointTranslation = angle;
+}
+
+void LegController::translateJoints(JointAngles *joints, uint8_t numJoints) {
+  if (jointTranslation > 0) {
+    for (uint8_t i = 0; i < numJoints; i++) {
+      joints[i].hx = radians(jointTranslation - degrees(joints[i].hx));
+      joints[i].hy = radians(jointTranslation - degrees(joints[i].hy));
+      joints[i].k = radians(jointTranslation - degrees(joints[i].k));
+    }
+  }
+}

@@ -68,8 +68,8 @@ public:
       joints[i].k = kTheta;
 
       TRACE("h1,%0.2f ,h2,%0.2f, a0,%0.2f, a1,%0.2f, a2,%0.2f, a3,%0.2f, a4,%0.2f, a5,%0.2f, r0,%0.2f, h,%0.2f, phi,%0.2f, hxCos,%0.2f\n", h1, h2, alpha0, alpha1, (alpha2), (alpha3), (alpha4), (alpha5), r0, h, phi, hxCos);
-      TRACE("%S,%0.2f,%0.2f,%0.2f\n", "Uncorrected angles", degrees(hxTheta), degrees(hyTheta), degrees(kTheta));
-      TRACE("%S,%0.2f,%0.2f,%0.2f\n", "Corrected angles", degrees(joints[i].hx), degrees(joints[i].hy), degrees(joints[i].k));
+      TRACE("%s,%0.2f,%0.2f,%0.2f\n", "Uncorrected angles", degrees(hxTheta), degrees(hyTheta), degrees(kTheta));
+      TRACE("%s,%0.2f,%0.2f,%0.2f\n", "Corrected angles", degrees(joints[i].hx), degrees(joints[i].hy), degrees(joints[i].k));
     }
   }
 };
@@ -80,7 +80,7 @@ public:
     static Point* GenerateCircle(float originX, float originY, float radius, uint8_t numPoints) {
         Point* points = new Point[numPoints];
         float angle = (2 * PI) / numPoints;
-        for (int i; i < numPoints; i++) {
+        for (uint8_t i = 0; i < numPoints; i++) {
             points[i].x = radius * cos(angle * i) + originX;
             points[i].y = 60;
             points[i].z = radius * sin(angle * i) + originY;
@@ -92,7 +92,7 @@ public:
     static Point* GenerateEllipse(float originX, float originY, float r1, float r2, uint8_t numPoints) {
         Point* points = new Point[numPoints];
         float angle = (2 * PI) / numPoints;
-        for (int i; i < numPoints; i++) {
+        for (uint8_t i; i < numPoints; i++) {
             points[i].x = r1 * cos(angle * i) + originX;
             points[i].y = r2 * sin(angle * i) + originY;
         }

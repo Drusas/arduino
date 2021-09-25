@@ -16,6 +16,7 @@ TaskManager::~TaskManager() {
 
 void TaskManager::addTask(ITask* taskToAdd) {
   if (taskToAdd != 0) {
+    TRACE("%s, %d\n", "TaskManager::addTask", managedTaskIdx);
     taskList[managedTaskIdx++] = taskToAdd;
   }
   else {
@@ -23,6 +24,7 @@ void TaskManager::addTask(ITask* taskToAdd) {
   }
 }
  void TaskManager::setTasksEnabled(bool state) {
+   TRACE("%s, %d, %d\n", "TaskManager::setTasksEnabled", state, managedTaskIdx);
    for (uint8_t i = 0; i < managedTaskIdx; i++) {
      taskList[i]->setEnabled(state);
    }
@@ -35,6 +37,9 @@ void TaskManager::addTask(ITask* taskToAdd) {
         TRACE("%s%d\n", "updateTask", i);
        }
        taskList[i]->Update();
+     }
+     else {
+       TRACE("%s %d\n", "updateTask, task not enabled", i);
      }
    }
  }

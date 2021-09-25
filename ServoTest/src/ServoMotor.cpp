@@ -49,8 +49,7 @@ int ServoMotor::clipAngle(int inputAngle) {
 void ServoMotor::setPosition(int angle) {
     cmdPos = clipAngle((angle));
 #ifdef DEBUG_SERVOMOTOR
-    Serial.print("ServoMotor::setPosition:");
-    Serial.println(cmdPos);
+    TRACE("%s, %d, %d, %d\n", "ServoMotor::setPosition:", this->joint->servoIndex, angle, cmdPos);
 #endif
 }
 
@@ -88,12 +87,11 @@ void ServoMotor::performUpdate() {
   //TRACE("%s\n","PERFORMING UPDATE");
 
   if (actPos != cmdPos) {
-      incrementActualPosition();
-      long pulseLength = map(actPos, 0, 180, joint->minPulse, joint->maxPulse);
-      driver.setPWM(joint->servoIndex, 0, pulseLength);
+    incrementActualPosition();
+    long pulseLength = map(actPos, 0, 180, joint->minPulse, joint->maxPulse);
+    driver.setPWM(joint->servoIndex, 0, pulseLength);
 #ifdef DEBUG_SERVOMOTOR
-        TRACE("%d,%d,%d,%d\n",joint->servoIndex, pulseLength, actPos, atPosition());
+      // TRACE("%d,%d,%d,%d\n",joint->servoIndex, pulseLength, actPos, atPosition());
 #endif
-      }
-    }
-//}
+  }
+}
