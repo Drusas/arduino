@@ -41,7 +41,8 @@ public:
   // todo - bounds check points in valid region (can we reach the point?)
   // todo - add zOffset to z input?
   // todo - pass values for transforming coordinate spaces 
-  void getJointAnglesFromVectors(Point* vectors, uint8_t numVectors, JointAngles *joints) {
+  uint8_t getJointAnglesFromVectors(Point* vectors, uint8_t numVectors, JointAngles *joints) {
+    uint8_t result = 0;
     for (uint8_t i = 0; i < numVectors; i++) {
       Point v  = vectors[i];
       TRACE("%s, %.2f, %.2f, %.2f\n", "Point: ", v.x, v.y, v.z);
@@ -67,10 +68,17 @@ public:
       joints[i].hy = radians(90) - hyTheta;
       joints[i].k = kTheta;
 
+      if ((joints[i].hx == NAN) ||
+          (joints[i].hy == NAN) ||
+          (joints[i].k == NAN)) {
+            result = 1;
+          }
+
       TRACE("h1,%0.2f ,h2,%0.2f, a0,%0.2f, a1,%0.2f, a2,%0.2f, a3,%0.2f, a4,%0.2f, a5,%0.2f, r0,%0.2f, h,%0.2f, phi,%0.2f, hxCos,%0.2f\n", h1, h2, alpha0, alpha1, (alpha2), (alpha3), (alpha4), (alpha5), r0, h, phi, hxCos);
       TRACE("%s,%0.2f,%0.2f,%0.2f\n", "Uncorrected angles", degrees(hxTheta), degrees(hyTheta), degrees(kTheta));
       TRACE("%s,%0.2f,%0.2f,%0.2f\n", "Corrected angles", degrees(joints[i].hx), degrees(joints[i].hy), degrees(joints[i].k));
     }
+    return result;
   }
 };
 

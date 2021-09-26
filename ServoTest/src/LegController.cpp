@@ -53,13 +53,18 @@ void LegController::moveToXYZ(float x, float y, float z) {
   p.y = y;
   p.z = z;
   JointAngles j;
-  ikModel.getJointAnglesFromVectors(&p, 1, &j);
-  TRACE("%s %.2f %.2f %.2f\n", "moveToXYZ set joint angles", degrees(j.hy), degrees(j.hx), degrees(j.k));
-  translateJoints(&j, 1);
-  TRACE("%s %.2f %.2f %.2f\n", "moveToXYZ set joint angles", degrees(j.hy), degrees(j.hx), degrees(j.k));
-  hipxMotor->setPosition(degrees(j.hy));
-  hipyMotor->setPosition(degrees(j.hx));
-  kneeMotor->setPosition(degrees(j.k));
+  uint8_t result = ikModel.getJointAnglesFromVectors(&p, 1, &j);
+  if (result == 0) {
+    TRACE("%s %.2f %.2f %.2f\n", "moveToXYZ set joint angles", degrees(j.hy), degrees(j.hx), degrees(j.k));
+    translateJoints(&j, 1);
+    TRACE("%s %.2f %.2f %.2f\n", "moveToXYZ TRANSLATED joint angles", degrees(j.hy), degrees(j.hx), degrees(j.k));
+    hipxMotor->setPosition(degrees(j.hy));
+    hipyMotor->setPosition(degrees(j.hx));
+    kneeMotor->setPosition(degrees(j.k));
+  }
+  else {
+    TRACE("%s %.2f %.2f %.2f\n", "ERROR CALCULATING JOINT ANGLES:", degrees(j.hy), degrees(j.hx), degrees(j.k));
+  }
 }
 
 void LegController::moveToAngles(uint8_t hx, uint8_t hy, uint8_t k) {
