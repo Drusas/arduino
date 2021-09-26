@@ -20,7 +20,40 @@ struct JointAngles {
 };
 
 class LegIKModel {
+public:
+  static const uint8_t NO_ERR = 0;
+  static const uint8_t ERR_NULL_PTR = 1;
+  static const uint8_t ERR_PT_OUTSIDE_MODEL = 2;
+  static const uint8_t ERR_TARGET_R0 = 3;
+
   float femur, tibia, zOffset, yOffset;
+
+protected:
+  uint8_t checkModelConstraints(Point *target) {
+    uint8_t result = NO_ERR;
+    if (target == 0)
+    {
+      result = ERR_NULL_PTR;
+    }
+
+    float modelRadius = femur + tibia;
+    float targetRadius = sqrt(target->x * target->x + target->z * target->z);
+    if (targetRadius >= modelRadius) {
+      result = ERR_PT_OUTSIDE_MODEL;
+    }
+
+    return result;
+  }
+
+  uint8_t checkModelR0(float targetR0) {
+    uint8_t result = NO_ERR;
+    float modelRadius = femur + tibia;
+    if ((targetR0 <= 0) || (targetR0 > modelRadius)) {
+      result = ERR_TARGET_R0;
+    }
+
+    return result;
+  }
 
 public:
   LegIKModel() : 
@@ -37,15 +70,27 @@ public:
     yOffset = yOff;
   }
 
+  // todo - need a setContstraints method for;
+  // minimum r0...
+
   // todo - error check (inputs, cos/sin/theta, etc.), return code
   // todo - bounds check points in valid region (can we reach the point?)
   // todo - add zOffset to z input?
   // todo - pass values for transforming coordinate spaces 
   uint8_t getJointAnglesFromVectors(Point* vectors, uint8_t numVectors, JointAngles *joints) {
-    uint8_t result = 0;
+    if ((vectors == 0) || (joints == 0)) {
+      return ERR_NULL_PTR;
+    }
+    
+    uint8_t result = NO_ERR;
     for (uint8_t i = 0; i < numVectors; i++) {
       Point v  = vectors[i];
       TRACE("%s, %.2f, %.2f, %.2f\n", "Point: ", v.x, v.y, v.z);
+      // todo need an array of error numbers
+      result = checkModelConstraints(&v);
+      if (result != NO_ERR) {
+        break;
+      }
       // calculate Y-Z plane
       float h1 = sqrt(zOffset*zOffset + yOffset*yOffset);
       float h2 = sqrt(v.z*v.z + v.y*v.y);
@@ -57,6 +102,11 @@ public:
       float alpha5 = alpha1 - alpha4;
       float hyTheta = alpha0 - alpha5;
       float r0 = h1 * sin(alpha4) / sin(alpha3);
+      result = checkModelR0(r0);
+      if (result != NO_ERR) {
+        break;
+      }
+
       // calculate X-Z plane
       float h = sqrt(r0 * r0 + v.x * v.x);
       float phi = asin(v.x / h);
@@ -80,6 +130,8 @@ public:
     }
     return result;
   }
+
+  
 };
 
 class CurveGenerator {

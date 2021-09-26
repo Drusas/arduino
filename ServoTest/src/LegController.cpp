@@ -54,7 +54,7 @@ void LegController::moveToXYZ(float x, float y, float z) {
   p.z = z;
   JointAngles j;
   uint8_t result = ikModel.getJointAnglesFromVectors(&p, 1, &j);
-  if (result == 0) {
+  if (result == LegIKModel::NO_ERR) {
     TRACE("%s %.2f %.2f %.2f\n", "moveToXYZ set joint angles", degrees(j.hy), degrees(j.hx), degrees(j.k));
     translateJoints(&j, 1);
     TRACE("%s %.2f %.2f %.2f\n", "moveToXYZ TRANSLATED joint angles", degrees(j.hy), degrees(j.hx), degrees(j.k));
@@ -63,6 +63,7 @@ void LegController::moveToXYZ(float x, float y, float z) {
     kneeMotor->setPosition(degrees(j.k));
   }
   else {
+    TRACE("%s, %d\n", "Model error", result);
     TRACE("%s %.2f %.2f %.2f\n", "ERROR CALCULATING JOINT ANGLES:", degrees(j.hy), degrees(j.hx), degrees(j.k));
   }
 }
