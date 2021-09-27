@@ -355,11 +355,24 @@ void configureTasks() {
 
 void configureLegs() {
   legLF = new LegController(108, 132, 15, 60, 20, motorsLF[HX], motorsLF[HY], motorsLF[KNEE], servoController);
+  legLF->setHxTranslationAndOffset(radians(jointsLF[HX].translate), radians(jointsLF[HX].offset), jointsLF[HX].sign);
+  legLF->setHyTranslationAndOffset(radians(jointsLF[HY].translate), radians(jointsLF[HY].offset), jointsLF[HY].sign);
+  legLF->setKneeTranslationAndOffset(radians(jointsLF[KNEE].translate), radians(jointsLF[KNEE].offset), jointsLF[KNEE].sign);
+
   legLR = new LegController(108, 132, 15, 60, 20, motorsLR[HX], motorsLR[HY], motorsLR[KNEE], servoController);
+  legLR->setHxTranslationAndOffset(radians(jointsLR[HX].translate), radians(jointsLR[HX].offset), jointsLR[HX].sign);
+  legLR->setHyTranslationAndOffset(radians(jointsLR[HY].translate), radians(jointsLR[HY].offset), jointsLR[HY].sign);
+  legLR->setKneeTranslationAndOffset(radians(jointsLR[KNEE].translate), radians(jointsLR[KNEE].offset), jointsLR[KNEE].sign);
+  
   legRF = new LegController(108, 132, 15, 60, 20, motorsRF[HX], motorsRF[HY], motorsRF[KNEE], servoController);
-  legRF->jointTranslationFactor(180);
+  legRF->setHxTranslationAndOffset(radians(jointsRF[HX].translate), radians(jointsRF[HX].offset), jointsRF[HX].sign);
+  legRF->setHyTranslationAndOffset(radians(jointsRF[HY].translate), radians(jointsRF[HY].offset), jointsRF[HY].sign);
+  legRF->setKneeTranslationAndOffset(radians(jointsRF[KNEE].translate), radians(jointsRF[KNEE].offset), jointsRF[KNEE].sign);
+
   legRR = new LegController(108, 132, 15, 60, 20, motorsRR[HX], motorsRR[HY], motorsRR[KNEE], servoController);
-  legRR->jointTranslationFactor(180);
+  legRR->setHxTranslationAndOffset(radians(jointsRR[HX].translate), radians(jointsRR[HX].offset), jointsRR[HX].sign);
+  legRR->setHyTranslationAndOffset(radians(jointsRR[HY].translate), radians(jointsRR[HY].offset), jointsRR[HY].sign);
+  legRR->setKneeTranslationAndOffset(radians(jointsRR[KNEE].translate), radians(jointsRR[KNEE].offset), jointsRR[KNEE].sign);
 }
 
 SerialCommand cmd_servo_enable_("ENABLE", cmd_servo_enable);

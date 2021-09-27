@@ -1,7 +1,7 @@
 #include "TaskManager.h"
 #include "Utils.h"
 
-#define DEBUG_TASKMANAGER 0
+//#define DEBUG_TASKMANAGER
 
 TaskManager::TaskManager(uint8_t numTasks) :
   numManagedTasks(numTasks),
@@ -33,13 +33,15 @@ void TaskManager::addTask(ITask* taskToAdd) {
  void TaskManager::updateTasks() {
    for (uint8_t i = 0; i < managedTaskIdx; i++) {
      if (taskList[i]->getEnabled()) {
-       if (DEBUG_TASKMANAGER) {
+#ifdef DEBUG_TASKMANAGER
         TRACE("%s%d\n", "updateTask", i);
-       }
+#endif       
        taskList[i]->Update();
      }
      else {
+#ifdef DEBUG_TASKMANAGER       
        TRACE("%s %d\n", "updateTask, task not enabled", i);
+#endif
      }
    }
  }

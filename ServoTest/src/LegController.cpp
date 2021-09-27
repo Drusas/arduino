@@ -11,7 +11,6 @@ LegController::LegController(float femurLength, float tibiaLength, float zOffset
   kneeMotor = knee;
   posIdx = bufferIdx = 0;
   ikModel = LegIKModel(femurLength, tibiaLength, zOffset, yOffset);
-  jointTranslation = 0;
 }
 
 void LegController::addPosition(uint8_t c, uint8_t s, uint8_t k) {
@@ -19,12 +18,6 @@ void LegController::addPosition(uint8_t c, uint8_t s, uint8_t k) {
   positionBuffer[bufferIdx].hx = c;
   positionBuffer[bufferIdx].k = k;
   bufferIdx = ++bufferIdx % NUM_POSITIONS;
-}
-
-void LegController::generateTrajectory() {
-  Point* points = CurveGenerator::GenerateCircle(25, 200, 50, NUM_POSITIONS);
-  ikModel.getJointAnglesFromVectors(points, NUM_POSITIONS, positionBuffer);
-  delete points;
 }
 
 void LegController::incrementPosition() {
@@ -55,11 +48,11 @@ void LegController::moveToXYZ(float x, float y, float z) {
   JointAngles j;
   uint8_t result = ikModel.getJointAnglesFromVectors(&p, 1, &j);
   if (result == LegIKModel::NO_ERR) {
-    TRACE("%s %.2f %.2f %.2f\n", "moveToXYZ set joint angles", degrees(j.hy), degrees(j.hx), degrees(j.k));
-    translateJoints(&j, 1);
-    TRACE("%s %.2f %.2f %.2f\n", "moveToXYZ TRANSLATED joint angles", degrees(j.hy), degrees(j.hx), degrees(j.k));
-    hipxMotor->setPosition(degrees(j.hy));
-    hipyMotor->setPosition(degrees(j.hx));
+    
+    TRACE("%s %.2f %.2f %.2f\n", "moveToXYZ set joint angles", degrees(j.hx), degrees(j.hy), degrees(j.k));
+
+    hipxMotor->setPosition(degrees(j.hx));
+    hipyMotor->setPosition(degrees(j.hy));
     kneeMotor->setPosition(degrees(j.k));
   }
   else {
@@ -95,17 +88,14 @@ IMotor* LegController::getJoint(uint8_t idx) {
   return motor;
 }
 
-void LegController::jointTranslationFactor(uint8_t angle) {
-  //jointTranslation = radians(angle);
-  jointTranslation = angle;
+void LegController::setHxTranslationAndOffset(float translate, float offset, int sign) {
+  ikModel.setHxTranslationAndOffset(translate, offset, sign);
 }
 
-void LegController::translateJoints(JointAngles *joints, uint8_t numJoints) {
-  if (jointTranslation > 0) {
-    for (uint8_t i = 0; i < numJoints; i++) {
-      joints[i].hx = radians(jointTranslation - degrees(joints[i].hx));
-      joints[i].hy = radians(jointTranslation - degrees(joints[i].hy));
-      joints[i].k = radians(jointTranslation - degrees(joints[i].k));
-    }
-  }
+void LegController::setHyTranslationAndOffset(float translate, float offset, int sign) {
+  ikModel.setHyTranslationAndOffset(translate, offset, sign);
+}
+
+void LegController::setKneeTranslationAndOffset(float translate, float offset, int sign) {
+  ikModel.setKneeTranslationAndOffset(translate, offset, sign);
 }

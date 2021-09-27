@@ -11,4 +11,6 @@
     #define TRACE(format, ...)   Serial.printf( "%s::%s(%d) " format, __FILE__, __FUNCTION__,  __LINE__, __VA_ARGS__ )
 #endif
 
+float round_up(float value, uint8_t decimal_places);
+
 #endif
