@@ -78,6 +78,10 @@ bool ServoMotor::getHomed() {
   return true;  // temporarily disable while adding support for all legs
 }
 
+void ServoMotor::setSpeed(uint8_t speed) {
+  increment = speed;
+}
+
 void ServoMotor::performUpdate() {
   if (!servoController->getEnabled() || !getHomed()) {
     TRACE("%s%d%s%d\n","NOT PERFORMING UPDATE, ENABLED: ", servoController->getEnabled(), getHomed());

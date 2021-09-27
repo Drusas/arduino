@@ -54,7 +54,8 @@ public:
   int cmdPosition();
   int actPosition();
   void home();
-  bool getHomed(); 
+  bool getHomed();
+  void setSpeed(uint8_t speed); 
 };
 
 #endif

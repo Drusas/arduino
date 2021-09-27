@@ -195,6 +195,30 @@ void cmd_ik(SerialCommands* sender) {
   
 }
 
+void cmd_stand(SerialCommands* sender) {
+  TRACE("%s\n", "STAND");
+  legLF->moveToXYZ(0, 60, 220);
+  legLR->moveToXYZ(-50, 60, 220);
+  legRF->moveToXYZ(0, 60, 220);
+  legRR->moveToXYZ(-50, 60, 220);
+}
+
+void cmd_lay(SerialCommands* sender) {
+  TRACE("%s\n", "LAY");
+  legLF->moveToXYZ(0, 60, 100);
+  legLR->moveToXYZ(-50, 60, 100);
+  legRF->moveToXYZ(0, 60, 100);
+  legRR->moveToXYZ(-50, 60, 100);
+}
+
+void cmd_sit(SerialCommands* sender) {
+  TRACE("%s\n", "SIT");
+  legLF->moveToXYZ(0, 60, 220);
+  legLR->moveToXYZ(-50, 60, 100);
+  legRF->moveToXYZ(0, 60, 220);
+  legRR->moveToXYZ(-50, 60, 100);
+}
+
 void configureJoints()
 {
   jointsLF[HX].minPulse = jointsLF[HY].minPulse = jointsLF[KNEE].minPulse = SERVOMIN;
@@ -326,18 +350,22 @@ void configureMotors() {
   motorsLF[HX] = new ServoMotor(20, &jointsLF[HX], servoController, pwm);
   motorsLF[HY] = new ServoMotor(20, &jointsLF[HY], servoController, pwm);
   motorsLF[KNEE] = new ServoMotor(20, &jointsLF[KNEE], servoController, pwm);
+  motorsLF[KNEE]->setSpeed(2);
 
   motorsLR[HX] = new ServoMotor(20, &jointsLR[HX], servoController, pwm);
   motorsLR[HY] = new ServoMotor(20, &jointsLR[HY], servoController, pwm);
   motorsLR[KNEE] = new ServoMotor(20, &jointsLR[KNEE], servoController, pwm);
+  motorsLR[KNEE]->setSpeed(2);
 
   motorsRF[HX] = new ServoMotor(20, &jointsRF[HX], servoController, pwm);
   motorsRF[HY] = new ServoMotor(20, &jointsRF[HY], servoController, pwm);
   motorsRF[KNEE] = new ServoMotor(20, &jointsRF[KNEE], servoController, pwm);
+  motorsRF[KNEE]->setSpeed(2);
 
   motorsRR[HX] = new ServoMotor(20, &jointsRR[HX], servoController, pwm);
   motorsRR[HY] = new ServoMotor(20, &jointsRR[HY], servoController, pwm);
   motorsRR[KNEE] = new ServoMotor(20, &jointsRR[KNEE], servoController, pwm);
+  motorsRR[KNEE]->setSpeed(2);
 
   TRACE("%s\n", "configureMotors COMPLETE");
 }
@@ -382,6 +410,9 @@ SerialCommand cmd_hipy_("HY", cmd_hipy);
 SerialCommand cmd_knee_("KNEE", cmd_knee);
 SerialCommand cmd_leg_("LEG", cmd_leg);
 SerialCommand cmd_ik_("IK", cmd_ik);
+SerialCommand cmd_stand_("STAND", cmd_stand);
+SerialCommand cmd_sit_("SIT", cmd_sit);
+SerialCommand cmd_lay_("LAY", cmd_lay);
 // SerialCommand cmd_status_("STATUS", cmd_status);
 // SerialCommand cmd_target_("TARGET", cmd_target);
 // SerialCommand cmd_angle_("ANGLE", cmd_angle);
@@ -389,23 +420,22 @@ SerialCommand cmd_ik_("IK", cmd_ik);
 
 void setup() {
   Serial.begin(57600);
-  delay(100);
+  delay(10);
+
 	serial_commands_.SetDefaultHandler(cmd_unrecognized);
 	serial_commands_.AddCommand(&cmd_servo_enable_);
-  // serial_commands_.AddCommand(&cmd_mode_);
   serial_commands_.AddCommand(&cmd_hipx_);
   serial_commands_.AddCommand(&cmd_hipy_);
   serial_commands_.AddCommand(&cmd_knee_);
   serial_commands_.AddCommand(&cmd_leg_);
-  // serial_commands_.AddCommand(&cmd_status_);
   serial_commands_.AddCommand(&cmd_ik_);
-  // serial_commands_.AddCommand(&cmd_angle_);
-  // serial_commands_.AddCommand(&cmd_home_);
+  serial_commands_.AddCommand(&cmd_stand_);
+  serial_commands_.AddCommand(&cmd_sit_);
+  serial_commands_.AddCommand(&cmd_lay_);
 
   pwm.begin();
   pwm.setOscillatorFrequency(27000000);  // The int.osc. is closer to 27MHz  
   pwm.setPWMFreq(SERVO_FREQ);  // Analog servos run at ~50 Hz updates
-
   delay(10);
 
   configureJoints();
