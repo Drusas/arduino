@@ -25,6 +25,9 @@ struct Joint {
   uint8_t maxAngle;
   uint8_t cmdAngle;
   uint8_t homeAngle;
+  float translate;
+  int offset;
+  int sign;
 };
 
 class ServoMotor : public IMotor, public ITask

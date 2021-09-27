@@ -205,39 +205,57 @@ void configureJoints()
   jointsLF[HX].maxAngle = 90;
   jointsLF[HX].cmdAngle = 75; // RR 125; // RF 105; // LR 50; // LF 75
   jointsLF[HX].homeAngle = 75; // RR 125; // RF 105; // LR 50; // LF 75
+  jointsLF[HX].translate = 90;
+  jointsLF[HX].offset = -10;
+  jointsLF[HX].sign = -1;
 
   jointsLF[HY].servoIndex = 2; // RR 12; // RF 3; // LR 13; // LF 2;
   jointsLF[HY].minAngle = 0; // RR/RF 180; // LF/LR 0;
   jointsLF[HY].maxAngle = 180; // RR/RF 0; // LF/LR 180;
   jointsLF[HY].cmdAngle = 130; // RR 50; // RF 50 // LF/LR 130;
   jointsLF[HY].homeAngle = 130; // RF/RR 50; // LF/LR 130;
+  jointsLF[HY].translate = 90;
+  jointsLF[HY].offset = 0;
+  jointsLF[HY].sign = 1;
 
   jointsLF[KNEE].servoIndex = 0; // RR 14; // RF 1 // LR 15; // LF 0;
   jointsLF[KNEE].minAngle = 30; // RF/RR 170; // LF/LR 30;
   jointsLF[KNEE].maxAngle = 180;
   jointsLF[KNEE].cmdAngle = 50; // RF/RR 170; // LF/LR 50;
   jointsLF[KNEE].homeAngle = 50; // RF/RR 170; // LF/LR 50;
+  jointsLF[KNEE].translate = 0;
+  jointsLF[KNEE].offset = 0;
+  jointsLF[KNEE].sign = 1;
 
   jointsLR[HX].minPulse = jointsLR[HY].minPulse = jointsLR[KNEE].minPulse = SERVOMIN;
   jointsLR[HX].maxPulse = jointsLR[HY].maxPulse = jointsLR[KNEE].maxPulse = SERVOMAX;
 
   jointsLR[HX].servoIndex = 11; // RR 10; // RF 5; // LR 11; // LF 4;
-  jointsLR[HX].minAngle = 35;
-  jointsLR[HX].maxAngle = 65;
-  jointsLR[HX].cmdAngle = 50; // RR 125; // RF 105; // LR 50; // LF 75
-  jointsLR[HX].homeAngle = 50; // RR 125; // RF 105; // LR 50; // LF 75
+  jointsLR[HX].minAngle = 45;
+  jointsLR[HX].maxAngle = 75;
+  jointsLR[HX].cmdAngle = 60; // RR 125; // RF 105; // LR 50; // LF 75
+  jointsLR[HX].homeAngle = 60; // RR 125; // RF 105; // LR 50; // LF 75
+  jointsLR[HX].translate = 90;
+  jointsLR[HX].offset = -30;
+  jointsLR[HX].sign = -1;
 
   jointsLR[HY].servoIndex = 13; // RR 12; // RF 3; // LR 13; // LF 2;
   jointsLR[HY].minAngle = 0; // RR/RF 180; // LF/LR 0;
   jointsLR[HY].maxAngle = 180; // RR/RF 0; // LF/LR 180;
   jointsLR[HY].cmdAngle = 130; // RR 50; // RF 50 // LF/LR 130;
   jointsLR[HY].homeAngle = 130; // RF/RR 50; // LF/LR 130;
+  jointsLR[HY].translate = 90;
+  jointsLR[HY].offset = 0;
+  jointsLR[HY].sign = 1;
 
   jointsLR[KNEE].servoIndex = 15; // RR 14; // RF 1 // LR 15; // LF 0;
   jointsLR[KNEE].minAngle = 30; // RF/RR 170; // LF/LR 30;
   jointsLR[KNEE].maxAngle = 180;
   jointsLR[KNEE].cmdAngle = 50; // RF/RR 170; // LF/LR 50;
   jointsLR[KNEE].homeAngle = 50; // RF/RR 170; // LF/LR 50;
+  jointsLR[KNEE].translate = 0;
+  jointsLR[KNEE].offset = 0;
+  jointsLR[KNEE].sign = 1;
 
   jointsRF[HX].minPulse = jointsRF[HY].minPulse = jointsRF[KNEE].minPulse = SERVOMIN;
   jointsRF[HX].maxPulse = jointsRF[HY].maxPulse = jointsRF[KNEE].maxPulse = SERVOMAX;
@@ -247,39 +265,57 @@ void configureJoints()
   jointsRF[HX].maxAngle = 120;
   jointsRF[HX].cmdAngle = 105; // RR 125; // RF 105; // LR 50; // LF 75
   jointsRF[HX].homeAngle = 105; // RR 125; // RF 105; // LR 50; // LF 75
+  jointsRF[HX].translate = 90;
+  jointsRF[HX].offset = 10;
+  jointsRF[HX].sign = -1;
 
   jointsRF[HY].servoIndex = 3; // RR 12; // RF 3; // LR 13; // LF 2;
   jointsRF[HY].minAngle = 0; // RR/RF 180; // LF/LR 0;
   jointsRF[HY].maxAngle = 180; // RR/RF 0; // LF/LR 180;
   jointsRF[HY].cmdAngle = 50; // RR 50; // RF 50 // LF/LR 130;
   jointsRF[HY].homeAngle = 50; // RF/RR 50; // LF/LR 130;
+  jointsRF[HY].translate = 90;
+  jointsRF[HY].offset = 0;
+  jointsRF[HY].sign = -1;
 
   jointsRF[KNEE].servoIndex = 1; // RR 14; // RF 1 // LR 15; // LF 0;
   jointsRF[KNEE].minAngle = 0; // RF/RR 170; // LF/LR 30;
   jointsRF[KNEE].maxAngle = 170;
   jointsRF[KNEE].cmdAngle = 170; // RF/RR 170; // LF/LR 50;
   jointsRF[KNEE].homeAngle = 170; // RF/RR 170; // LF/LR 50;
+  jointsRF[KNEE].translate = 180;
+  jointsRF[KNEE].offset = 32;
+  jointsRF[KNEE].sign = -1;
 
   jointsRR[HX].minPulse = jointsRR[HY].minPulse = jointsRR[KNEE].minPulse = SERVOMIN;
   jointsRR[HX].maxPulse = jointsRR[HY].maxPulse = jointsRR[KNEE].maxPulse = SERVOMAX;
 
   jointsRR[HX].servoIndex = 10; // RR 10; // RF 5; // LR 11; // LF 4;
-  jointsRR[HX].minAngle = 110;
-  jointsRR[HX].maxAngle = 140;
-  jointsRR[HX].cmdAngle = 125; // RR 125; // RF 105; // LR 50; // LF 75
-  jointsRR[HX].homeAngle = 125; // RR 125; // RF 105; // LR 50; // LF 75
+  jointsRR[HX].minAngle = 105;
+  jointsRR[HX].maxAngle = 135;
+  jointsRR[HX].cmdAngle = 120; // RR 125; // RF 105; // LR 50; // LF 75
+  jointsRR[HX].homeAngle = 120; // RR 125; // RF 105; // LR 50; // LF 75
+  jointsRR[HX].translate = 90;
+  jointsRR[HX].offset = 30;
+  jointsRR[HX].sign = -1;
 
   jointsRR[HY].servoIndex = 12; // RR 12; // RF 3; // LR 13; // LF 2;
   jointsRR[HY].minAngle = 0; // RR/RF 180; // LF/LR 0;
   jointsRR[HY].maxAngle = 180; // RR/RF 0; // LF/LR 180;
   jointsRR[HY].cmdAngle = 50; // RR 50; // RF 50 // LF/LR 130;
   jointsRR[HY].homeAngle = 50; // RF/RR 50; // LF/LR 130;
+  jointsRR[HY].translate = 90;
+  jointsRR[HY].offset = 0;
+  jointsRR[HY].sign = -1;
 
   jointsRR[KNEE].servoIndex = 14; // RR 14; // RF 1 // LR 15; // LF 0;
   jointsRR[KNEE].minAngle = 0; // RF/RR 170; // LF/LR 30;
   jointsRR[KNEE].maxAngle = 170;
   jointsRR[KNEE].cmdAngle = 170; // RF/RR 170; // LF/LR 50;
   jointsRR[KNEE].homeAngle = 170; // RF/RR 170; // LF/LR 50;
+  jointsRR[KNEE].translate = 180;
+  jointsRR[KNEE].offset = 25;
+  jointsRR[KNEE].sign = -1;
 
   TRACE("%s\n", "configureJoints COMPLETE");
 }
