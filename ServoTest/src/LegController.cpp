@@ -114,3 +114,15 @@ void LegController::setHyTranslationAndOffset(float translate, float offset, int
 void LegController::setKneeTranslationAndOffset(float translate, float offset, int sign) {
   ikModel.setKneeTranslationAndOffset(translate, offset, sign);
 }
+
+void LegController::setHxConstraints(float min, float max) {
+  ikModel.setHxConstraints(min, max);
+}
+
+void LegController::setHyConstraints(float min, float max) {
+  ikModel.setHyConstraints(min, max);
+}
+
+void LegController::setKneeConstraints(float min, float max) {
+  ikModel.setKneeConstraints(min, max);
+}

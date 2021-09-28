@@ -43,6 +43,9 @@ protected:
   void setHxTranslationAndOffset(float translate, float offset, int sign);
   void setHyTranslationAndOffset(float translate, float offset, int sign);
   void setKneeTranslationAndOffset(float translate, float offset, int sign);
+  void setHxConstraints(float min, float max);
+  void setHyConstraints(float min, float max);
+  void setKneeConstraints(float min, float max);
   void followTrajectory(Point *buffer, uint8_t numPoints);
 };
 

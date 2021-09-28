@@ -53,6 +53,13 @@ uint8_t LegIKModel::getJointAnglesFromVectors(Point* vectors, uint8_t numVectors
     TRACE("%s %0.2f,%0.2f,%0.2f\n", "Uncorrected angles: ", degrees(hxTheta), degrees(hyTheta), degrees(kTheta));
 #endif
     result = applyJointTranslationAndOffset(&hxTheta, &hyTheta, &kTheta);
+    if (result != NO_ERR) {
+      break;
+    }
+    result = checkThetaConstraints(hxTheta, hyTheta, kTheta);
+    if (result != NO_ERR) {
+      break;
+    }
 
     joints[i].hx = hxTheta;
     joints[i].hy = hyTheta;
@@ -63,7 +70,7 @@ uint8_t LegIKModel::getJointAnglesFromVectors(Point* vectors, uint8_t numVectors
     if ((joints[i].hx == NAN) ||
         (joints[i].hy == NAN) ||
         (joints[i].k == NAN)) {
-          result = 1;
+          result = ERR_UNKNOWN;
         }
   }
   return result;
@@ -95,6 +102,26 @@ uint8_t LegIKModel::checkModelR0(float targetR0) {
   return result;
 }
 
+uint8_t LegIKModel::checkThetaConstraints(float hx, float hy, float knee) {
+  uint8_t result = NO_ERR;
+
+  hx = round_up(hx, 4);
+  hy = round_up(hy, 4);
+  knee = round_up(knee, 4);
+
+  if ((hx < hxConstraints.min) || (hx > hxConstraints.max)) {
+    result = ERR_HX_OUT_OF_RANGE;
+  }
+  else if ((hy < hyConstraints.min) || (hy > hyConstraints.max)) {
+    result = ERR_HY_OUT_OF_RANGE;
+  }
+  else if ((knee < kneeConstraints.min) || (knee > kneeConstraints.max)) {
+    result = ERR_KNEE_OUT_OF_RANGE;
+  }
+
+  return result;
+}
+
 LegIKModel::LegIKModel() :
 femur(0),
 tibia(0),
@@ -111,6 +138,9 @@ LegIKModel::LegIKModel(float femurLength, float tibiaLength, float zOff, float y
   setHxTranslationAndOffset(0, 0, 1);
   setHyTranslationAndOffset(0, 0, 1);
   setKneeTranslationAndOffset(0, 0, 1);
+  setHxConstraints(0, radians(180));
+  setHyConstraints(0, radians(180));
+  setKneeConstraints(0, radians(180));
 }
 
 uint8_t LegIKModel::applyJointTranslationAndOffset(float *hx, float *hy, float *knee) {
@@ -128,26 +158,26 @@ uint8_t LegIKModel::applyJointTranslationAndOffset(float *hx, float *hy, float *
     return result;
   }
 #ifdef DEBUG_IKMODEL
-  TRACE("%s %0.2f,%0.2f,%d\n", "hx offsets: ", degrees(round_up(hxConstraints.translate, 2)), degrees(round_up(hxConstraints.offset, 2)), hxConstraints.sign);
-  TRACE("%s %0.2f,%0.2f,%d\n", "hy offsets: ", degrees(round_up(hyConstraints.translate, 2)), degrees(round_up(hyConstraints.offset, 2)), hyConstraints.sign);
-  TRACE("%s %0.2f,%0.2f,%d\n", "knee offsets: ", degrees(kneeConstraints.translate), degrees(kneeConstraints.offset), kneeConstraints.sign);
+  TRACE("%s %0.2f,%0.2f,%d\n", "hx offsets: ", degrees(round_up(hxOffsets.translate, 2)), degrees(round_up(hxOffsets.offset, 2)), hxOffsets.sign);
+  TRACE("%s %0.2f,%0.2f,%d\n", "hy offsets: ", degrees(round_up(hyOffsets.translate, 2)), degrees(round_up(hyOffsets.offset, 2)), hyOffsets.sign);
+  TRACE("%s %0.2f,%0.2f,%d\n", "knee offsets: ", degrees(kneeOffsets.translate), degrees(kneeOffsets.offset), kneeOffsets.sign);
 #endif
   float x = *hx;
   float y = *hy;
   float k = *knee;
-  if (hxConstraints.translate > 0) {
-    x = hxConstraints.translate + (hxConstraints.sign * x);
+  if (hxOffsets.translate > 0) {
+    x = hxOffsets.translate + (hxOffsets.sign * x);
   }
-  if (hyConstraints.translate > 0) {
-    y = hyConstraints.translate + (hyConstraints.sign * y);
+  if (hyOffsets.translate > 0) {
+    y = hyOffsets.translate + (hyOffsets.sign * y);
   }
-  if (kneeConstraints.translate > 0) {
-    k = kneeConstraints.translate + (kneeConstraints.sign * k);
+  if (kneeOffsets.translate > 0) {
+    k = kneeOffsets.translate + (kneeOffsets.sign * k);
   }
 
-  x += hxConstraints.offset;
-  y += hyConstraints.offset;
-  k += kneeConstraints.offset;
+  x += hxOffsets.offset;
+  y += hyOffsets.offset;
+  k += kneeOffsets.offset;
 
   *hx = x;
   *hy = y;
@@ -156,19 +186,34 @@ uint8_t LegIKModel::applyJointTranslationAndOffset(float *hx, float *hy, float *
 }
 
 void LegIKModel::setHxTranslationAndOffset(float translate, float offset, int sign) {
-  hxConstraints.translate = translate;
-  hxConstraints.offset = offset;
-  hxConstraints.sign = sign;
+  hxOffsets.translate = translate;
+  hxOffsets.offset = offset;
+  hxOffsets.sign = sign;
 }
 
 void LegIKModel::setHyTranslationAndOffset(float translate, float offset, int sign) {
-  hyConstraints.translate = translate;
-  hyConstraints.offset = offset;
-  hyConstraints.sign = sign;
+  hyOffsets.translate = translate;
+  hyOffsets.offset = offset;
+  hyOffsets.sign = sign;
 }
 
 void LegIKModel::setKneeTranslationAndOffset(float translate, float offset, int sign) {
-  kneeConstraints.translate = translate;
-  kneeConstraints.offset = offset;
-  kneeConstraints.sign = sign;
+  kneeOffsets.translate = translate;
+  kneeOffsets.offset = offset;
+  kneeOffsets.sign = sign;
+}
+
+void LegIKModel::setHxConstraints(float min, float max) {
+  hxConstraints.min = min;
+  hxConstraints.max = max;
+}
+
+void LegIKModel::setHyConstraints(float min, float max) {
+  hyConstraints.min = min;
+  hyConstraints.max = max;
+}
+
+void LegIKModel::setKneeConstraints(float min, float max) {
+  kneeConstraints.min = min;
+  kneeConstraints.max = max;
 }
