@@ -13,10 +13,15 @@ LegController::LegController(float femurLength, float tibiaLength, float zOffset
   ikModel = LegIKModel(femurLength, tibiaLength, zOffset, yOffset);
 }
 
-void LegController::addPosition(uint8_t c, uint8_t s, uint8_t k) {
-  positionBuffer[bufferIdx].hy = s;
-  positionBuffer[bufferIdx].hx = c;
-  positionBuffer[bufferIdx].k = k;
+// void LegController::addPosition(uint8_t c, uint8_t s, uint8_t k) {
+//   positionBuffer[bufferIdx].hy = s;
+//   positionBuffer[bufferIdx].hx = c;
+//   positionBuffer[bufferIdx].k = k;
+//   bufferIdx = ++bufferIdx % NUM_POSITIONS;
+// }
+
+void LegController::addPoint(Point p) {
+  positionBuffer[bufferIdx] = p;
   bufferIdx = ++bufferIdx % NUM_POSITIONS;
 }
 
@@ -29,13 +34,23 @@ void LegController::performUpdate() {
     Serial.print(hipyMotor->atPosition()); Serial.print(" ,"); Serial.print(hipxMotor->atPosition()); Serial.print(" ,"); Serial.println(kneeMotor->atPosition());
   }
   if (hipyMotor->atPosition() && hipxMotor->atPosition() && kneeMotor->atPosition()) {
-    hipyMotor->setPosition(degrees(positionBuffer[posIdx].hy));
-    hipxMotor->setPosition(degrees(positionBuffer[posIdx].hx));
-    kneeMotor->setPosition(degrees(positionBuffer[posIdx].k));
+    moveToXYZ(positionBuffer[posIdx].x, positionBuffer[posIdx].y, positionBuffer[posIdx].z);
+    // hipyMotor->setPosition(degrees(positionBuffer[posIdx].hy));
+    // hipxMotor->setPosition(degrees(positionBuffer[posIdx].hx));
+    // kneeMotor->setPosition(degrees(positionBuffer[posIdx].k));
     if (DEBUG_LEGCONTROLLER > 0) {
       Serial.print(hipyMotor->cmdPosition()); Serial.print(" ,"); Serial.print(hipxMotor->cmdPosition()); Serial.print(" ,"); Serial.println(kneeMotor->cmdPosition());
     }
     incrementPosition();
+  }
+}
+
+void LegController::followTrajectory(Point *buffer, uint8_t numPoints) {
+  for (int i = 0; i < numPoints; i++) {
+    do {
+      moveToXYZ(buffer[i].x, buffer[i].y, buffer[i].z);
+    } while (!hipyMotor->atPosition() || !hipxMotor->atPosition() || !kneeMotor->atPosition());
+    
   }
 }
 

@@ -19,12 +19,12 @@ struct LegPosition {
 
 class LegController : public ITask
 {
-  static const uint8_t NUM_POSITIONS = 20;
+  static const uint8_t NUM_POSITIONS = 4;
   IServoController *servoController;
   IMotor *hipxMotor; // rotates about the x-axis (y-z plane)
   IMotor *hipyMotor; // rotates about the y-axis (x-z plane)
   IMotor *kneeMotor;
-  JointAngles positionBuffer[NUM_POSITIONS];
+  Point positionBuffer[NUM_POSITIONS];
   uint8_t posIdx, bufferIdx;
   LegIKModel ikModel;
   
@@ -35,13 +35,15 @@ protected:
     
  public:
   LegController(float femurLength, float tibiaLength, float zOffset, float yOffset, int interval, IMotor *hipy, IMotor *hipx, IMotor *knee, IServoController *controller);
-  void addPosition(uint8_t c, uint8_t s, uint8_t k);
+  //void addPosition(uint8_t c, uint8_t s, uint8_t k);
+  void addPoint(Point p);
   void moveToXYZ(float x, float y, float z);
   void moveToAngles(uint8_t hx, uint8_t hy, uint8_t k);
   IMotor* getJoint(uint8_t idx);
   void setHxTranslationAndOffset(float translate, float offset, int sign);
   void setHyTranslationAndOffset(float translate, float offset, int sign);
   void setKneeTranslationAndOffset(float translate, float offset, int sign);
+  void followTrajectory(Point *buffer, uint8_t numPoints);
 };
 
 #endif

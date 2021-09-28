@@ -6,6 +6,7 @@
 #include "ServoController.h"
 #include "ServoMotor.h"
 #include "TaskManager.h"
+#include "TrajectoryGenerator.h"
 #include "Utils.h"
 
 #define SERVO_FREQ 50 // Analog servos run at ~50 Hz updates
@@ -46,7 +47,7 @@ void cmd_unrecognized(SerialCommands* sender, const char* cmd) {
 void cmd_servo_enable(SerialCommands* sender) {
   enabled = !enabled;
   servoController->setEnabled(enabled);
-  taskManager->setTasksEnabled(enabled);
+  //taskManager->setTasksEnabled(enabled);
   for (uint8_t i = 0; i < 3; i++) {
     motorsLF[i]->setEnabled(enabled);
     motorsLR[i]->setEnabled(enabled);
@@ -212,11 +213,29 @@ void cmd_lay(SerialCommands* sender) {
 }
 
 void cmd_sit(SerialCommands* sender) {
+  legLF->setEnabled(false);
   TRACE("%s\n", "SIT");
-  legLF->moveToXYZ(0, 60, 220);
-  legLR->moveToXYZ(-50, 60, 100);
-  legRF->moveToXYZ(0, 60, 220);
-  legRR->moveToXYZ(-50, 60, 100);
+  // legLF->moveToXYZ(0, 60, 220);
+  // legLR->moveToXYZ(-50, 60, 100);
+  // legRF->moveToXYZ(0, 60, 220);
+  // legRR->moveToXYZ(-50, 60, 100);
+}
+
+void cmd_circle(SerialCommands* sender) {
+  TRACE("%s\n", "CIRC");
+  int numPoints = 4;
+  Point *buffer;
+  //buffer = TrajectoryGenerator::GenerateCircle(25, 180, 50, numPoints);
+  buffer = TrajectoryGenerator::GenerateRectangle(25, 180, 50, 150, numPoints);
+  for (int i = 0; i < numPoints; i++) {
+      TRACE("%d: %0.2f, %0.2f, %0.2f\n", i, buffer[i].x, buffer[i].y, buffer[i].z);
+      legLF->addPoint(buffer[i]);
+  }
+
+  legLF->setEnabled(true);
+  // legLF->followTrajectory(buffer, numPoints);
+
+  free (buffer);
 }
 
 void configureJoints()
@@ -378,6 +397,9 @@ void configureTasks() {
     taskManager->addTask(motorsRF[i]);
     taskManager->addTask(motorsRR[i]);
   }
+
+  legLF->setEnabled(false);
+  taskManager->addTask(legLF);
   
 }
 
@@ -404,7 +426,6 @@ void configureLegs() {
 }
 
 SerialCommand cmd_servo_enable_("ENABLE", cmd_servo_enable);
-// SerialCommand cmd_mode_("MODE", cmd_mode);
 SerialCommand cmd_hipx_("HX", cmd_hipx);
 SerialCommand cmd_hipy_("HY", cmd_hipy);
 SerialCommand cmd_knee_("KNEE", cmd_knee);
@@ -413,10 +434,7 @@ SerialCommand cmd_ik_("IK", cmd_ik);
 SerialCommand cmd_stand_("STAND", cmd_stand);
 SerialCommand cmd_sit_("SIT", cmd_sit);
 SerialCommand cmd_lay_("LAY", cmd_lay);
-// SerialCommand cmd_status_("STATUS", cmd_status);
-// SerialCommand cmd_target_("TARGET", cmd_target);
-// SerialCommand cmd_angle_("ANGLE", cmd_angle);
-// SerialCommand cmd_home_("HOME", cmd_home);
+SerialCommand cmd_circle_("CIRC", cmd_circle);
 
 void setup() {
   Serial.begin(57600);
@@ -432,6 +450,7 @@ void setup() {
   serial_commands_.AddCommand(&cmd_stand_);
   serial_commands_.AddCommand(&cmd_sit_);
   serial_commands_.AddCommand(&cmd_lay_);
+  serial_commands_.AddCommand(&cmd_circle_);
 
   pwm.begin();
   pwm.setOscillatorFrequency(27000000);  // The int.osc. is closer to 27MHz  

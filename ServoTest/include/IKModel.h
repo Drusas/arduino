@@ -7,11 +7,6 @@
 #include <Arduino.h>
 #include "Utils.h"
 
-struct Point {
-  float x;
-  float y;
-  float z;
-};
 
 struct JointAngles {
   float hx;

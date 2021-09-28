@@ -1,6 +1,8 @@
 #include "IKModel.h"
 #include "Utils.h"
 
+// #define DEBUG_IKMODEL
+
 // todo - need a setContstraints method for;
 // minimum r0...
 
@@ -16,7 +18,9 @@ uint8_t LegIKModel::getJointAnglesFromVectors(Point* vectors, uint8_t numVectors
   uint8_t result = NO_ERR;
   for (uint8_t i = 0; i < numVectors; i++) {
     Point v  = vectors[i];
+  #ifdef DEBUG_IKMODEL
     TRACE("%s, %.2f, %.2f, %.2f\n", "Point: ", v.x, v.y, v.z);
+  #endif
     // todo need an array of error numbers
     result = checkModelConstraints(&v);
     if (result != NO_ERR) {
@@ -44,18 +48,18 @@ uint8_t LegIKModel::getJointAnglesFromVectors(Point* vectors, uint8_t numVectors
     float hxCos = (h*h + femur*femur - tibia*tibia) / (2 * h * femur);
     float hyTheta = acos(hxCos) - phi;
     float kTheta = acos((tibia*tibia + femur*femur - h*h) / (2*tibia*femur));
-
+#ifdef DEBUG_IKMODEL
     TRACE("h1,%0.2f ,h2,%0.2f, a0,%0.2f, a1,%0.2f, a2,%0.2f, a3,%0.2f, a4,%0.2f, a5,%0.2f, r0,%0.2f, h,%0.2f, phi,%0.2f, hxCos,%0.2f\n", h1, h2, alpha0, alpha1, (alpha2), (alpha3), (alpha4), (alpha5), r0, h, phi, hxCos);
     TRACE("%s %0.2f,%0.2f,%0.2f\n", "Uncorrected angles: ", degrees(hxTheta), degrees(hyTheta), degrees(kTheta));
-
+#endif
     result = applyJointTranslationAndOffset(&hxTheta, &hyTheta, &kTheta);
 
     joints[i].hx = hxTheta;
     joints[i].hy = hyTheta;
     joints[i].k = kTheta;
-
+#ifdef DEBUG_IKMODEL
     TRACE("%s %0.2f,%0.2f,%0.2f\n", "Translated angles: ", degrees(hxTheta), degrees(hyTheta), degrees(kTheta));
-
+#endif
     if ((joints[i].hx == NAN) ||
         (joints[i].hy == NAN) ||
         (joints[i].k == NAN)) {
@@ -123,11 +127,11 @@ uint8_t LegIKModel::applyJointTranslationAndOffset(float *hx, float *hy, float *
   if (result != NO_ERR) {
     return result;
   }
-
+#ifdef DEBUG_IKMODEL
   TRACE("%s %0.2f,%0.2f,%d\n", "hx offsets: ", degrees(round_up(hxConstraints.translate, 2)), degrees(round_up(hxConstraints.offset, 2)), hxConstraints.sign);
   TRACE("%s %0.2f,%0.2f,%d\n", "hy offsets: ", degrees(round_up(hyConstraints.translate, 2)), degrees(round_up(hyConstraints.offset, 2)), hyConstraints.sign);
   TRACE("%s %0.2f,%0.2f,%d\n", "knee offsets: ", degrees(kneeConstraints.translate), degrees(kneeConstraints.offset), kneeConstraints.sign);
-
+#endif
   float x = *hx;
   float y = *hy;
   float k = *knee;

@@ -13,4 +13,8 @@
 
 float round_up(float value, uint8_t decimal_places);
 
+struct Point {
+    float x, y, z;
+};
+
 #endif
