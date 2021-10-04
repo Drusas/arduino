@@ -4,6 +4,7 @@
     "cstddef": "cpp",
     "limits": "cpp",
     "random": "cpp",
-    "cstdint": "cpp"
+    "cstdint": "cpp",
+    "iostream": "cpp"
   }
 }
