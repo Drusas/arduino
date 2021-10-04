@@ -16,9 +16,12 @@ public:
     long ticks;
     float footLocations[3][4];
     float jointAngles[3][4];
+    float height = -0.16;
 
     State();
     ~State();
+    void getFootLocation(int legIdx, float *location);
+    float getZPosition(int legIdx);
 };
 
 #endif

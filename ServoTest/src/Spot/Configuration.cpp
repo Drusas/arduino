@@ -1,6 +1,12 @@
 #include "Configuration.h"
 
 Configuration::Configuration() {
-    memset(contactPhases, 0, 8*4*sizeof(uint8_t));
+    
+}
+
+void Configuration::getDefaultStanceLocaton(int legIdx, float *location) {
+    for (int i = 0; i < 3; i++) {
+        location[i] = defaultStance[legIdx][i];
+    }
 }
 

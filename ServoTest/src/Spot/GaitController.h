@@ -8,12 +8,13 @@ class GaitController {
 
     Configuration *spotConfig;
 
-    // int getPhaseIndex(long ticks);
+    int getPhaseIndex(long ticks);
 
 public:
     GaitController(Configuration * config);
     ~GaitController();
-    // void getFootContacts(long ticks, uint8_t *modes);
+    void getFootContacts(long ticks, uint8_t *modes);
+    int getSubPhaseTicks(long ticks);
 };
 
 #endif

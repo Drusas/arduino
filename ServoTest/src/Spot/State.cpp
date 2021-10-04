@@ -9,3 +9,14 @@ State::State() {
 };
 
 State::~State() {};
+
+// get the x, y, z position of the leg referenced by legIdx
+void State::getFootLocation(int legIdx, float *location) {
+    for (int i = 0; i < 3; i++) {
+        location[i] = footLocations[legIdx][i];
+    }
+}
+
+float State::getZPosition(int legIdx) {
+    return footLocations[legIdx][2];
+}
