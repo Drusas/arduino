@@ -9,6 +9,10 @@
 #include "TrajectoryGenerator.h"
 #include "Utils.h"
 
+#include "Controller.h"
+
+Controller ctlr;
+
 #define SERVO_FREQ 50 // Analog servos run at ~50 Hz updates
 #define SERVOMIN  95 // This is the 'minimum' pulse length count (out of 4096)
 #define SERVOMAX  455 // This is the 'maximum' pulse length count (out of 4096)

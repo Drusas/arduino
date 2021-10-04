@@ -2,7 +2,11 @@
 #include "GaitController.h"
 #include "StanceController.h"
 #include "SwingController.h"
-#include "Utils.h"
+// #include "Utils.h"
+
+Controller::Controller() {
+    spotConfig = new Configuration();
+}
 
 Controller::Controller(Configuration *config) {
     spotConfig = config;
@@ -25,7 +29,7 @@ Controller::~Controller() {
 }
 
 void Controller::stepGait(State *state, Command *command, float* newFootLocations, uint8_t *contact_modes) {
-    TRACE("state: %d, command: %d, locations: %d, modes: %d\n",state, command, (int)(newFootLocations), contact_modes);
+    // TRACE("state: %d, command: %d, locations: %d, modes: %d\n",state, command, (int)(newFootLocations), contact_modes);
     
     gaitController->getFootContacts(state->ticks, contactModes);
     float newLocation[3];

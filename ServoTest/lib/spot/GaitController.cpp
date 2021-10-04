@@ -34,4 +34,5 @@ int GaitController::getPhaseIndex(long ticks) {
             return i;
         }
     }
+    return phaseSum;
 }

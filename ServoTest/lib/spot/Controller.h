@@ -18,6 +18,7 @@ class Controller {
     StanceController *stanceController;
     
 public:
+    Controller();
     Controller(Configuration *config);
     ~Controller();
     void stepGait(State *state, Command *command, float* new_locations, uint8_t *contact_modes);
