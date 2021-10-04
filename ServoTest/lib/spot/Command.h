@@ -1,7 +1,7 @@
 #ifndef _SPOT_COMMAND_H
 #define _SPOT_COMMAND_H
 
-#include <Arduino.h>
+// #include <Arduino.h>
 
 class Command {
 

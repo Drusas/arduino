@@ -1,4 +1,5 @@
 #include "State.h"
+#include <cstring>
 
 State::State() {
     memset(horizontalVelocity, 0, 2*sizeof(float));

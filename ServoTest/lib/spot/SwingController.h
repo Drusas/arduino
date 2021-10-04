@@ -1,7 +1,7 @@
 #ifndef _SPOT_SWINGCONTROLLER_H
 #define _SPOT_SWINGCONTROLLER_H
 
-#include <Arduino.h>
+// #include <Arduino.h>
 #include "Command.h"
 #include "Configuration.h"
 #include "State.h"

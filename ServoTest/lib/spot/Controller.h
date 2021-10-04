@@ -1,7 +1,7 @@
 #ifndef _SPOT_CONTROLLER_H
 #define _SPOT_CONTROLLER_H
 
-#include <Arduino.h>
+// #include <Arduino.h>
 #include "Command.h"
 #include "Configuration.h"
 #include "GaitController.h"
@@ -19,7 +19,6 @@ class Controller {
     
 public:
     Controller();
-    Controller(Configuration *config);
     ~Controller();
     void stepGait(State *state, Command *command, float* new_locations, uint8_t *contact_modes);
 };

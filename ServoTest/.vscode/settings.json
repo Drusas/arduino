@@ -3,6 +3,7 @@
     "*.tcc": "cpp",
     "cstddef": "cpp",
     "limits": "cpp",
-    "random": "cpp"
+    "random": "cpp",
+    "cstdint": "cpp"
   }
 }

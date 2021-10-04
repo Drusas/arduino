@@ -1,7 +1,7 @@
 #ifndef _SPOT_GAITCONTROLLER_H
 #define _SPOT_GAITCONTROLLER_H
 
-#include <Arduino.h>
+// #include <Arduino.h>
 #include "Configuration.h"
 
 class GaitController {

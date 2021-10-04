@@ -1,20 +1,16 @@
+#include <cstring>
 #include "Controller.h"
 #include "GaitController.h"
 #include "StanceController.h"
 #include "SwingController.h"
-// #include "Utils.h"
 
 Controller::Controller() {
     spotConfig = new Configuration();
-}
-
-Controller::Controller(Configuration *config) {
-    spotConfig = config;
     memset(contactModes, 0, 4*sizeof(uint8_t));
 
-    gaitController = new GaitController(config);
-    stanceController = new StanceController(config);
-    swingController = new SwingController(config);
+    gaitController = new GaitController(spotConfig);
+    stanceController = new StanceController(spotConfig);
+    swingController = new SwingController(spotConfig);
 }
 
 Controller::~Controller() {

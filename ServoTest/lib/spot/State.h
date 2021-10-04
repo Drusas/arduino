@@ -1,7 +1,7 @@
 #ifndef _SPOT_STATE_H
 #define _SPOT_STATE_H
 
-#include <Arduino.h>
+// #include <Arduino.h>
 
 enum BehaviorState {
     REST = 0,

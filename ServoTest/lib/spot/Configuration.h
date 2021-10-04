@@ -1,14 +1,15 @@
 #ifndef _SPOT_CONFIGURATION_H
 #define _SPOT_CONFIGURATION_H
 
-#include <Arduino.h>
+// #include <Arduino.h>
+#include <stdint.h>
 
 class Configuration {
 
 public:
     // there are 8 contact phases when walking
     // we'll access each phase as a column in the array.
-    uint8_t contactPhases[4][8] = {{1, 0, 1, 1, 1, 1, 1, 1}, 
+    unsigned char contactPhases[4][8] = {{1, 0, 1, 1, 1, 1, 1, 1}, 
                                    {1, 1, 1, 0, 1, 1, 1, 1},
                                    {1, 1, 1, 1, 1, 0, 1, 1},
                                    {1, 1, 1, 1, 1, 1, 1, 0}};
