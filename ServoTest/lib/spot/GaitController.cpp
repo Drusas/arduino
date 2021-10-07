@@ -7,12 +7,16 @@ GaitController::GaitController(Configuration *config) {
 
 GaitController::~GaitController() {}
 
-void GaitController::getFootContacts(int ticks, uint8_t *modes) {
+void GaitController::getFootContacts(long ticks, uint8_t *modes) {
     // todo: check size
-    modes = spotConfig->contactPhases[getPhaseIndex(ticks)];
+    int idx = getPhaseIndex(ticks);
+    for (int i = 0; i < 4; i++) {
+        modes[i] = spotConfig->contactPhases[i][idx];
+    }
+    // modes = spotConfig->contactPhases[getPhaseIndex(ticks)];
 }
 
-int GaitController::getSubPhaseTicks(int ticks) {
+int GaitController::getSubPhaseTicks(long ticks) {
     int phaseTime = ticks % spotConfig->phaseLength;
     int phaseSum = 0;
     int subPhaseTicks = 0;
@@ -26,21 +30,22 @@ int GaitController::getSubPhaseTicks(int ticks) {
     return subPhaseTicks;
 }
 
-int GaitController::getPhaseIndex(int ticks) {
-    std::cout << "getPhaseIndex" << std::endl;
-    std::cout << "spotConfig->phaseLength: " << spotConfig->phaseLength << std::endl;
-    std::cout << "spotConfig->numPhases: " << spotConfig->numPhases << std::endl;
-    int phaseTime = ticks % spotConfig->phaseLength;
-    std::cout << "phasetime: " << phaseTime << std::endl;
+int GaitController::getPhaseIndex(long ticks) {
+    // std::cout << "getPhaseIndex: " << ticks << std::endl;
+    // std::cout << "spotConfig->phaseLength: " << spotConfig->phaseLength << std::endl;
+    // std::cout << "spotConfig->numPhases: " << spotConfig->numPhases << std::endl;
+    int phaseTime = 0; 
+    phaseTime = ticks % spotConfig->phaseLength;
+    // std::cout << "phasetime: " << phaseTime << std::endl;
     int phaseSum = 0;
     for (int i = 0; i < spotConfig->numPhases; i++) {
         phaseSum += spotConfig->phaseTicks[i];
-        std::cout << "getPhaseIndex: " << i << " phasesum:" << phaseSum << std::endl;
+        // std::cout << "currentIndex: " << i << " phasesum:" << phaseSum << std::endl;
         if (phaseTime < phaseSum) {
-            std::cout << "getPhaseIndex: " << i << std::endl;
+            // std::cout << "returnedPhaseIndex: " << i << std::endl;
             return i;
         }
     }
-    std::cout << "getPhaseIndex: " << phaseSum << std::endl;
+    // std::cout << "returnedPhaseIndex: " << phaseSum << std::endl;
     return phaseSum;
 }
