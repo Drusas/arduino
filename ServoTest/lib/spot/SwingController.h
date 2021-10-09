@@ -9,12 +9,15 @@
 class SwingController {
 
     Configuration *spotConfig;
-    float getSwingHeight(float swingPhase);
-    void getRaibertTouchdownLocation(int legIdx, Command *command, float *raibertLocation);
+    
+    
     
 public:
     SwingController(Configuration *config);
     ~SwingController();
+
+    void getRaibertTouchdownLocation(int legIdx, Command *command, float *raibertLocation);
+    float getSwingHeight(float swingPhase);
     void nextFootLocation(float swingProportion, int legIdx, State *state, Command *command, float *newLocation);
 };
 

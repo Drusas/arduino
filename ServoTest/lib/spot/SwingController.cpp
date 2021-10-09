@@ -1,4 +1,5 @@
 #include "SwingController.h"
+#include <iostream>
 
 SwingController::SwingController(Configuration *config) {
     spotConfig = config;
@@ -11,10 +12,19 @@ void SwingController::nextFootLocation(float swingProportion, int legIdx, State 
 
     float currentFootLocation[3];
     state->getFootLocation(legIdx, currentFootLocation);
-    // float swingHeight = getSwingHeight(swingProportion);
-    // float touchDownLocation[2];
-    // getRaibertTouchdownLocation(legIdx, command, touchDownLocation);
-    // float timeLeft = spotConfig->dt * spotConfig->swingTicks * (1 - swingProportion);
+    float swingHeight = getSwingHeight(swingProportion);
+    float touchDownLocation[3];
+    getRaibertTouchdownLocation(legIdx, command, touchDownLocation);
+    float timeLeft = spotConfig->dt * spotConfig->swingTicks * (1 - swingProportion);
+
+    float deltaX = (touchDownLocation[0] - currentFootLocation[0]) / timeLeft;
+    float deltaY = (touchDownLocation[1] - currentFootLocation[1]) / timeLeft;
+
+    std::cout << "nextLoc:swingHeight: " << swingHeight << " timeLeft: " << timeLeft << " commandHeight " << command->height << std::endl;
+
+    newLocation[0] = currentFootLocation[0] + deltaX;
+    newLocation[1] = currentFootLocation[1] + deltaY;
+    newLocation[2] = swingHeight + command->height;
     // float v = ()
     
     // foot_location = state.foot_locations[:, leg_index]
@@ -34,22 +44,17 @@ float SwingController::getSwingHeight(float swingPhase) {
             swingHeight = swingPhase / 0.5 * spotConfig->zClearance;
     }
     else {
-            swingHeight = spotConfig->zClearance * (1 - (swingPhase - 0.5) / 0.5);
+        float mult = (1 - (swingPhase -.5) / 0.5);
+        swingHeight = spotConfig->zClearance * mult;
     }
     return swingHeight;
 }
 
 void SwingController::getRaibertTouchdownLocation(int legIdx, Command *command, float *raibertLocation) {
-    // float deltaX = spotConfig->alpha * spotConfig->stanceTicks * spotConfig->dt * command->horizontalVelocity[0];
-    // float deltaY = spotConfig->alpha * spotConfig->stanceTicks * spotConfig->dt * command->horizontalVelocity[1];
- 
-    // delta_p_2d = (
-    //         self.config.alpha
-    //         * self.config.stance_ticks
-    //         * self.config.dt
-    //         * command.horizontal_velocity
-    //     )
-    //     delta_p = np.array([delta_p_2d[0], delta_p_2d[1], 0])
+    float deltaX = spotConfig->alpha * spotConfig->stanceTicks * spotConfig->dt * command->horizontalVelocity[0];
+    float deltaY = spotConfig->alpha * spotConfig->stanceTicks * spotConfig->dt * command->horizontalVelocity[1];
 
-    //     return self.config.default_stance[:, leg_index] + delta_p
+    raibertLocation[0] = spotConfig->defaultStance[0][legIdx] + deltaX;
+    raibertLocation[1] = spotConfig->defaultStance[1][legIdx] + deltaY;
+    raibertLocation[2] = 0.0; 
 }

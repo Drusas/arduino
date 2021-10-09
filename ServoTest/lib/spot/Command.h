@@ -9,6 +9,7 @@ public:
     float horizontalVelocity[2];
     bool activateEvent;
     bool walkEvent;
+    float height;
     
     Command();
     ~Command();

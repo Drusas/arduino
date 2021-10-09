@@ -18,8 +18,8 @@ public:
     float xShift = 0.0;
     float defaultZRef = -0.16;                             
     float defaultStance[3][4] = {{deltaX + xShift, deltaX + xShift, -deltaX + xShift, deltaX + xShift},
-                                 {-deltaY, deltaY, -deltaY, deltaY},
-                                 {0, 0, 0, 0}};
+                                 {-deltaY,         deltaY,          -deltaY,          deltaY         },
+                                 { 0,              0,                0,               0              }};
     
     
     float overlapTime = 0.1;
