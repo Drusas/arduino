@@ -17,19 +17,19 @@ void GaitController::getFootContacts(long ticks, uint8_t *modes) {
 }
 
 int GaitController::getSubPhaseTicks(long ticks) {
-    std::cout << "getSubPhaseTicks: " << ticks << std::endl;
-    std::cout << "spotConfig->phaseLength: " << spotConfig->phaseLength << std::endl;
-    std::cout << "spotConfig->numPhases: " << spotConfig->numPhases << std::endl;
+    // std::cout << "getSubPhaseTicks: " << ticks << std::endl;
+    // std::cout << "spotConfig->phaseLength: " << spotConfig->phaseLength << std::endl;
+    // std::cout << "spotConfig->numPhases: " << spotConfig->numPhases << std::endl;
     int phaseTime = ticks % spotConfig->phaseLength;
-    std::cout << "phasetime: " << phaseTime << std::endl;
+    // std::cout << "phasetime: " << phaseTime << std::endl;
     int phaseSum = 0;
     int subPhaseTicks = 0;
     for (int i = 0; i < spotConfig->numPhases; i++) {
         phaseSum += spotConfig->phaseTicks[i];
-        std::cout << "currentIndex: " << i << " phasesum:" << phaseSum << " subPhaseTicks:" << subPhaseTicks << std::endl;
+        // std::cout << "currentIndex: " << i << " phasesum:" << phaseSum << " subPhaseTicks:" << subPhaseTicks << std::endl;
         if (phaseTime < phaseSum) {
             subPhaseTicks = phaseTime - phaseSum + spotConfig->phaseTicks[i];
-            std::cout << "returnedSubPhaseTicks: " << subPhaseTicks << std::endl;
+            // std::cout << "returnedSubPhaseTicks: " << subPhaseTicks << std::endl;
             return subPhaseTicks;
         }
     }

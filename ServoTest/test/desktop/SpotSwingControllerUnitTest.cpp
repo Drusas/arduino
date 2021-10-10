@@ -92,9 +92,9 @@ TEST(SpotSwingControllerTestSuite, NextFootLocationTest) {
   float swingProp = (float)(gc->getSubPhaseTicks(state->ticks)) / (float)spotConfig->swingTicks;
   int legIdx = 3;
   float target[] = {0.0, 0.0, 0.0};
-  std::cout << "swingTicks: " << spotConfig->swingTicks << " ticks: " << state->ticks << std::endl;
+  // std::cout << "swingTicks: " << spotConfig->swingTicks << " ticks: " << state->ticks << std::endl;
   sc->nextFootLocation(swingProp, legIdx, state, cmd, target);
-  std::cout << "swingProp: " << swingProp << " target: " << target[0] << ", " << target[1] << ", "<< target[2] << ", " << std::endl;
+  // std::cout << "swingProp: " << swingProp << " target: " << target[0] << ", " << target[1] << ", "<< target[2] << ", " << std::endl;
   EXPECT_GT(target[0], 0.0);
   EXPECT_GT(target[2], 0.0);
 

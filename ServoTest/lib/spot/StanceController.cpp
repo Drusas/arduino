@@ -1,4 +1,5 @@
 #include "StanceController.h"
+#include <iostream>
 
 StanceController::StanceController(Configuration *config) {
     spotConfig = config;
@@ -21,7 +22,9 @@ void StanceController::getPositionDelta(int legIdx, State *state, Command *comma
     zPos  = 1.0 / spotConfig->zTimeConstant * (state->height - zPos);
     zPos *= spotConfig->dt;
     float x = -command->horizontalVelocity[0] * spotConfig->dt;
+    
     float y = -command->horizontalVelocity[1] * spotConfig->dt;
+    std::cout << "horz: " << command->horizontalVelocity[0] << " dt: " << spotConfig->dt << std::endl;
     delta[0] = x;
     delta[1] = y;
     delta[2] = zPos;

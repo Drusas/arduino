@@ -20,21 +20,11 @@ void SwingController::nextFootLocation(float swingProportion, int legIdx, State 
     float deltaX = (touchDownLocation[0] - currentFootLocation[0]) / timeLeft;
     float deltaY = (touchDownLocation[1] - currentFootLocation[1]) / timeLeft;
 
-    std::cout << "nextLoc:swingHeight: " << swingHeight << " timeLeft: " << timeLeft << " commandHeight " << command->height << std::endl;
+    // std::cout << "nextLoc:swingHeight: " << swingHeight << " timeLeft: " << timeLeft << " commandHeight " << command->height << std::endl;
 
     newLocation[0] = currentFootLocation[0] + deltaX;
     newLocation[1] = currentFootLocation[1] + deltaY;
     newLocation[2] = swingHeight + command->height;
-    // float v = ()
-    
-    // foot_location = state.foot_locations[:, leg_index]
-    // swing_height_ = self.swing_height(swing_prop)
-    // touchdown_location = self.raibert_touchdown_location(leg_index, command)
-    // time_left = self.config.dt * self.config.swing_ticks * (1.0 - swing_prop)
-    // v = (touchdown_location - foot_location) / time_left * np.array([1, 1, 0])
-    // delta_foot_location = v * self.config.dt
-    // z_vector = np.array([0, 0, swing_height_ + command.height])
-    // return foot_location * np.array([1, 1, 0]) + z_vector + delta_foot_location
 }
 
 float SwingController::getSwingHeight(float swingPhase) {
