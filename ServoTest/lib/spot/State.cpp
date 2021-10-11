@@ -34,6 +34,14 @@ void State::setAllFootLocations(float locations[][4]) {
     }
 }
 
+void State::getAllFootLocations(float dest[][4]) {
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 4; j++) {
+            dest[i][j] = footLocations[i][j];
+        }
+    }
+}
+
 void State::printFootLocations() {
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 4; j++) {

@@ -24,9 +24,10 @@ Controller::~Controller() {
     swingController = 0;
 }
 
-void Controller::stepGait(State *state, Command *command, float* newFootLocations, uint8_t *contact_modes) {
+void Controller::stepGait(State *state, Command *command, float newFootLocations[][4], uint8_t *contact_modes) {
     // TRACE("state: %d, command: %d, locations: %d, modes: %d\n",state, command, (int)(newFootLocations), contact_modes);
     
+    // todo - remove contactModes member ?
     gaitController->getFootContacts(state->ticks, contactModes);
     float newLocation[3];
     for (int i = 0; i < 4; i++) {
@@ -37,6 +38,13 @@ void Controller::stepGait(State *state, Command *command, float* newFootLocation
         else {
             float swingProportion = gaitController->getSubPhaseTicks(state->ticks) / spotConfig->swingTicks;
             swingController->nextFootLocation(swingProportion, i, state, command, newLocation);
-        } 
+        }
+        state->setFootLocation(i, newLocation); 
     }
+
+    for (int i = 0; i < 4; i++) {
+        contact_modes[i] = contactModes[i];
+    }    
+    state->ticks++;
+    state->getAllFootLocations(newFootLocations);
 }

@@ -32,6 +32,8 @@ public:
     // legIdx [0-3], location float[3]
     void getFootLocation(int legIdx, float *location);
 
+    void getAllFootLocations(float dest[][4]);
+
     // legIdx [0-3]
     float getZPosition(int legIdx);
 };

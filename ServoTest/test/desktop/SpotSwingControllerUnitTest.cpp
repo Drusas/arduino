@@ -87,15 +87,18 @@ TEST(SpotSwingControllerTestSuite, NextFootLocationTest) {
   State *state = new State();
 
   // 1. Get location 1/4 of the way through the subphase
+  float defaultLoc[3][4];
+  memset(defaultLoc, 0, 12*sizeof(float));
+  state->setAllFootLocations(defaultLoc);
+  state->setAllFootLocations(spotConfig->defaultStance);
   cmd->horizontalVelocity[0] = 0.5;  // move in positive x-axis direction
   state->ticks = 0.25 * spotConfig->swingTicks;  // set time to 1/4 of swing phase
   float swingProp = (float)(gc->getSubPhaseTicks(state->ticks)) / (float)spotConfig->swingTicks;
   int legIdx = 3;
   float target[] = {0.0, 0.0, 0.0};
-  // std::cout << "swingTicks: " << spotConfig->swingTicks << " ticks: " << state->ticks << std::endl;
   sc->nextFootLocation(swingProp, legIdx, state, cmd, target);
-  // std::cout << "swingProp: " << swingProp << " target: " << target[0] << ", " << target[1] << ", "<< target[2] << ", " << std::endl;
-  EXPECT_GT(target[0], 0.0);
+  EXPECT_GT(target[0], spotConfig->defaultStance[0][legIdx]);
+  //EXPECT_GT(nextTarget[1], target[1]);  // don't understand why y coord is changing??
   EXPECT_GT(target[2], 0.0);
 
   // 2. Get location 1/2 of the way through the subphase
@@ -107,7 +110,7 @@ TEST(SpotSwingControllerTestSuite, NextFootLocationTest) {
   cmd->horizontalVelocity[1] = 0.0;
   sc->nextFootLocation(swingProp, legIdx, state, cmd, nextTarget);
 
-  EXPECT_GT(nextTarget[0], target[0]);
+  EXPECT_GT(nextTarget[0], spotConfig->defaultStance[0][legIdx]);
   //EXPECT_GT(nextTarget[1], target[1]);  // don't understand why y coord is changing??
   EXPECT_GT(nextTarget[2], target[2]);
 
@@ -122,7 +125,7 @@ TEST(SpotSwingControllerTestSuite, NextFootLocationTest) {
   cmd->horizontalVelocity[1] = 0.0;
   sc->nextFootLocation(swingProp, legIdx, state, cmd, nextTarget);
 
-  EXPECT_GT(nextTarget[0], target[0]);
+  EXPECT_GT(nextTarget[0], spotConfig->defaultStance[0][legIdx]);
   //EXPECT_GT(nextTarget[1], target[1]);  // don't understand why y coord is changing??
   EXPECT_LT(nextTarget[2], target[2]);  // passed the 1/2 way point of swing, z should not be decreasing
 }
