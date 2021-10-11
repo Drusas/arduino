@@ -51,7 +51,7 @@ void cmd_unrecognized(SerialCommands* sender, const char* cmd) {
 void cmd_servo_enable(SerialCommands* sender) {
   enabled = !enabled;
   servoController->setEnabled(enabled);
-  //taskManager->setTasksEnabled(enabled);
+  // taskManager->setTasksEnabled(enabled);
   for (uint8_t i = 0; i < 3; i++) {
     motorsLF[i]->setEnabled(enabled);
     motorsLR[i]->setEnabled(enabled);
