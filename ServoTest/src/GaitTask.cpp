@@ -32,7 +32,7 @@ void GaitTask::performUpdate() {
     if ((controller != nullptr)) {
         taskCounter++;
         if (areAnyLegBuffersFull()) {
-            printf("GaitTask::performUpdate a leg buffer is full() %d %d %d %d\n", RFLeg->isPositionBufferFull(), LFLeg->isPositionBufferFull(), RRLeg->isPositionBufferFull(), LRLeg->isPositionBufferFull());
+            TRACE("GaitTask::performUpdate a leg buffer is full() %d %d %d %d\n", RFLeg->isPositionBufferFull(), LFLeg->isPositionBufferFull(), RRLeg->isPositionBufferFull(), LRLeg->isPositionBufferFull());
             return;
         } 
         controller->stepGait(state, command, newLocations, footContacts);
@@ -89,9 +89,6 @@ bool GaitTask::areAnyLegBuffersFull() {
     }
     bool result = false;
     result = RFLeg->isPositionBufferFull() || LFLeg->isPositionBufferFull() || RRLeg->isPositionBufferFull() || LRLeg->isPositionBufferFull();
-    printf("%d %d %d %d\n", RFLeg->isPositionBufferFull(), LFLeg->isPositionBufferFull(), RRLeg->isPositionBufferFull(), LRLeg->isPositionBufferFull());
-    // result |= LFLeg->isPositionBufferFull();
-    // result |= RRLeg->isPositionBufferFull();
-    // result |= LRLeg->isPositionBufferFull();
+    //printf("%d %d %d %d\n", RFLeg->isPositionBufferFull(), LFLeg->isPositionBufferFull(), RRLeg->isPositionBufferFull(), LRLeg->isPositionBufferFull());
     return result;
 }

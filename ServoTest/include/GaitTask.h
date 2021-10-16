@@ -9,7 +9,6 @@ class GaitTask : public ITask {
     float newLocations[3][4];
     float prevLocations[3][4];
     uint8_t footContacts[4];
-
     int taskCounter;
 
     LegController *RFLeg;
