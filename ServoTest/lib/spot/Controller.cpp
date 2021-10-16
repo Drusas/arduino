@@ -30,10 +30,6 @@ Controller::~Controller() {
 }
 
 void Controller::stepGait(State *state, Command *command, float newFootLocations[][4], uint8_t *contact_modes) {
-    // TRACE("state: %d, command: %d, locations: %d, modes: %d\n",state, command, (int)(newFootLocations), contact_modes);
-
-    //printf("controller::stepGait()\n");
-    
     // todo - remove contactModes member ?
     gaitController->getFootContacts(state->ticks, contactModes);
     float newLocation[3];

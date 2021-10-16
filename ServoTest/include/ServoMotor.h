@@ -37,7 +37,7 @@ class ServoMotor : public IMotor, public ITask
   
   int actPos;
   int cmdPos;              
-  const int increment = 2;        // increment to move for each interval - THIS IS HOW WE CONTROL VELOCITY
+  int increment = 2;        // increment to move for each interval - THIS IS HOW WE CONTROL VELOCITY
   bool homed;
   uint8_t homePos;
 

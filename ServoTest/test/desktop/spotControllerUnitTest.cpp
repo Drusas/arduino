@@ -146,7 +146,7 @@ TEST_F(SpotControllerTest, DISABLED_StepGaitMovingForwardTest) {
     memset(prevLocations, 0, 12*sizeof(float));
 
     state->setAllFootLocations(prevLocations);
-    // state->//printfootLocations();
+    // state->printfootLocations();
     uint8_t contacts[4]; 
 
     // we only move if the velocity in the given direction is <> 0
@@ -162,7 +162,7 @@ TEST_F(SpotControllerTest, DISABLED_StepGaitMovingForwardTest) {
             EXPECT_LT(newLocations[i][j], prevLocations[i][j]);
         }
         copyLocations(newLocations, prevLocations);
-        // state->//printfootLocations();
+        // state->printfootLocations();
     }
 
     // phase 1
@@ -189,7 +189,7 @@ TEST_F(SpotControllerTest, GenerateMotionProfilesTest) {
     memset(prevLocations, 0, 12*sizeof(float));
 
     state->setAllFootLocations(prevLocations);
-    // state->//printfootLocations();
+    // state->printfootLocations();
     uint8_t contacts[4]; 
 
     // we only move if the velocity in the given direction is <> 0
