@@ -1,5 +1,10 @@
 #include "gtest/gtest.h"
 #include "Controller.h"
+#include <fstream>
+#include <iostream>
+#include <iomanip>
+
+using namespace std;
 
 // using ::testing::_;
 // using ::testing::NiceMock;
@@ -26,7 +31,7 @@ protected:
     Command *cmd;
 };
 
-TEST_F(SpotControllerTest, FirstTest) {
+TEST_F(SpotControllerTest, DISABLED_FirstTest) {
     float currentLocation[3] = {0.0, 0.0, 0.0};
     state->getFootLocation(0, currentLocation);
     float tol = 0.001;
@@ -36,7 +41,7 @@ TEST_F(SpotControllerTest, FirstTest) {
     EXPECT_NEAR(currentLocation[2], cfg->defaultStance[2][0], tol);
 }
 
-TEST_F(SpotControllerTest, StepGaitPhaseContactTest) {
+TEST_F(SpotControllerTest, DISABLED_StepGaitPhaseContactTest) {
 
     /*
     Test that foot contacts are correct for each phase,
@@ -127,10 +132,10 @@ void copyLocations(float src[][4], float dest[][4]) {
     }
 }
 
-TEST_F(SpotControllerTest, StepGaitMovingForwardTest) {
+TEST_F(SpotControllerTest, DISABLED_StepGaitMovingForwardTest) {
 
     /*
-    Test that each foot locationis correct when moving forward
+    Test that each foot location is correct when moving forward
     The swing foot should move forward in the x direction
     The stance feet should move backwards in the x direction
     */
@@ -170,5 +175,55 @@ TEST_F(SpotControllerTest, StepGaitMovingForwardTest) {
         EXPECT_LT(newLocations[0][1], prevLocations[0][1]);
         EXPECT_LT(newLocations[0][2], prevLocations[0][2]);
         EXPECT_LT(newLocations[0][3], prevLocations[0][3]);
+    }
+}
+
+static float defaultStance[3][4] = {{   0,   0, -50, -50},
+                                    {  60,  60,  60,  60},
+                                    { 220, 220, 220, 220}};
+
+TEST_F(SpotControllerTest, GenerateMotionProfilesTest) {
+    float newLocations[3][4];
+    memset(newLocations, 0, 12*sizeof(float));
+    float prevLocations[3][4];
+    memset(prevLocations, 0, 12*sizeof(float));
+
+    state->setAllFootLocations(prevLocations);
+    // state->printFootLocations();
+    uint8_t contacts[4]; 
+
+    // we only move if the velocity in the given direction is <> 0
+    cmd->horizontalVelocity[0] = 0.5;
+
+    size_t NUM_TICKS = 400;
+
+    float xPositions[NUM_TICKS];
+    float yPositions[NUM_TICKS];
+    float zPositions[NUM_TICKS];
+
+    for (int i = 0; i < NUM_TICKS; i ++) {
+        theController.stepGait(state, cmd, newLocations, contacts);
+        xPositions[i] = newLocations[0][0];
+        yPositions[i] = newLocations[1][0];
+        zPositions[i] = newLocations[2][0];
+
+        xPositions[i] = defaultStance[0][1] + newLocations[0][0];
+        yPositions[i] = defaultStance[1][1] - newLocations[1][0];
+        zPositions[i] = defaultStance[2][1] - newLocations[2][0];
+    }
+
+    
+
+    ofstream myfile ("gait.csv");
+    if (myfile.is_open())
+    {
+        for (int i = 0; i < NUM_TICKS; i++) {
+            myfile << std::fixed << std::setprecision(2);
+            myfile << xPositions[i] << "," << yPositions[i] << "," << zPositions[i] << endl;
+        }
+        myfile.close();
+    }
+    else {
+        cout << "Unable to open file";
     }
 }

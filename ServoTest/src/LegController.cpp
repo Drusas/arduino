@@ -13,36 +13,61 @@ LegController::LegController(float femurLength, float tibiaLength, float zOffset
   ikModel = LegIKModel(femurLength, tibiaLength, zOffset, yOffset);
 }
 
-// void LegController::addPosition(uint8_t c, uint8_t s, uint8_t k) {
-//   positionBuffer[bufferIdx].hy = s;
-//   positionBuffer[bufferIdx].hx = c;
-//   positionBuffer[bufferIdx].k = k;
-//   bufferIdx = ++bufferIdx % NUM_POSITIONS;
-// }
-
-void LegController::addPoint(Point p) {
-  positionBuffer[bufferIdx] = p;
-  bufferIdx = ++bufferIdx % NUM_POSITIONS;
+void LegController::addPoint(float x, float y, float z) {
+  Point p = { x, y, z };
+  addPoint(p);
 }
 
-void LegController::incrementPosition() {
-    posIdx = ++posIdx % NUM_POSITIONS;
+void LegController::addPoint(Point p) {
+  printf("addPoint 1\n");
+  if (getEnabled()) {
+    printf("addPoint 2\n");
+    TRACE("%s { %0.2f, %0.2f, %0.2f }\n", "Point", p.x, p.y, p.z);
+    if (positionBuffer.isNotFull()) {
+      positionBuffer.addElement(p);
+    }
+    else {
+      printf("addPoint 3\n");
+      TRACE("%s\n", "Buffer full");
+      throw std::exception();
+    }
   }
+}
 
 void LegController::performUpdate() {
   if (DEBUG_LEGCONTROLLER > 0) {
     Serial.print(hipyMotor->atPosition()); Serial.print(" ,"); Serial.print(hipxMotor->atPosition()); Serial.print(" ,"); Serial.println(kneeMotor->atPosition());
   }
-  if (hipyMotor->atPosition() && hipxMotor->atPosition() && kneeMotor->atPosition()) {
-    moveToXYZ(positionBuffer[posIdx].x, positionBuffer[posIdx].y, positionBuffer[posIdx].z);
-    // hipyMotor->setPosition(degrees(positionBuffer[posIdx].hy));
-    // hipxMotor->setPosition(degrees(positionBuffer[posIdx].hx));
-    // kneeMotor->setPosition(degrees(positionBuffer[posIdx].k));
-    if (DEBUG_LEGCONTROLLER > 0) {
-      Serial.print(hipyMotor->cmdPosition()); Serial.print(" ,"); Serial.print(hipxMotor->cmdPosition()); Serial.print(" ,"); Serial.println(kneeMotor->cmdPosition());
-    }
-    incrementPosition();
+  while (!areAllMotorsAtPosition()) {
+    printf("wait motors!\n");
+    ;
   }
+  printf("wait motors 2\n");
+  if (areAllMotorsAtPosition()) { //  && isNextPositionInBufferValid()) {
+    if (positionBuffer.isFull()) {
+      printf("wait motors 3\n");
+      // throw exception;
+      TRACE("%s\n", "buffer full");
+      throw std::exception();
+    }
+    else if (positionBuffer.isNotEmpty()) {
+      printf("wait motors 4\n");
+      Point p = positionBuffer.getElement();
+      moveToXYZ(p.x, p.y, p.z);
+    }
+    else {
+      printf("wait motors 5\n");
+      TRACE("%s\n", "buffer empty");
+      // empty no point to move to.
+    }
+  }
+}
+
+bool LegController::areAllMotorsAtPosition() {
+  printf("wait X joint: %d cmd: %d act: %d\n", hipxMotor->getServoIndex(), hipxMotor->cmdPosition(), hipxMotor->actPosition());
+  printf("wait Y joint: %d cmd: %d act: %d\n", hipyMotor->getServoIndex(), hipyMotor->cmdPosition(), hipyMotor->actPosition());
+  printf("wait K joint: %d cmd: %d act: %d\n", kneeMotor->getServoIndex(), kneeMotor->cmdPosition(), kneeMotor->actPosition());
+  return hipyMotor->atPosition() && hipxMotor->atPosition() && kneeMotor->atPosition();
 }
 
 void LegController::followTrajectory(Point *buffer, uint8_t numPoints) {
@@ -56,6 +81,7 @@ void LegController::followTrajectory(Point *buffer, uint8_t numPoints) {
 
 void LegController::moveToXYZ(float x, float y, float z) {
   TRACE("%s %.2f %.2f %.2f\n", "moveToXYZ", x, y, z);
+  printf("%s %.2f %.2f %.2f\n", "moveToXYZ", x, y, z);
   Point p;
   p.x = x;
   p.y = y;
@@ -65,6 +91,7 @@ void LegController::moveToXYZ(float x, float y, float z) {
   if (result == LegIKModel::NO_ERR) {
     
     TRACE("%s %.2f %.2f %.2f\n", "moveToXYZ set joint angles", degrees(j.hx), degrees(j.hy), degrees(j.k));
+    printf("%s %.2f %.2f %.2f\n", "moveToXYZ set joint angles", degrees(j.hx), degrees(j.hy), degrees(j.k));
 
     hipxMotor->setPosition(degrees(j.hx));
     hipyMotor->setPosition(degrees(j.hy));
@@ -73,6 +100,7 @@ void LegController::moveToXYZ(float x, float y, float z) {
   else {
     TRACE("%s, %d\n", "Model error", result);
     TRACE("%s %.2f %.2f %.2f\n", "ERROR CALCULATING JOINT ANGLES:", degrees(j.hy), degrees(j.hx), degrees(j.k));
+    printf("%s, %d\n", "Model error", result);
   }
 }
 

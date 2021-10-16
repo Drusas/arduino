@@ -3,6 +3,11 @@
 #include "GaitController.h"
 #include "StanceController.h"
 #include "SwingController.h"
+#include <iostream>
+#include <fstream>
+#include <iomanip>
+
+using namespace std;
 
 Controller::Controller() {
     spotConfig = new Configuration();
@@ -26,6 +31,8 @@ Controller::~Controller() {
 
 void Controller::stepGait(State *state, Command *command, float newFootLocations[][4], uint8_t *contact_modes) {
     // TRACE("state: %d, command: %d, locations: %d, modes: %d\n",state, command, (int)(newFootLocations), contact_modes);
+
+    printf("controller::stepGait()\n");
     
     // todo - remove contactModes member ?
     gaitController->getFootContacts(state->ticks, contactModes);
@@ -36,8 +43,10 @@ void Controller::stepGait(State *state, Command *command, float newFootLocations
             stanceController->nextFootLocation(i, state, command, newLocation);
         } 
         else {
-            float swingProportion = gaitController->getSubPhaseTicks(state->ticks) / spotConfig->swingTicks;
+            int spt = gaitController->getSubPhaseTicks(state->ticks);
+            float swingProportion = (float)(gaitController->getSubPhaseTicks(state->ticks)) / spotConfig->swingTicks;
             swingController->nextFootLocation(swingProportion, i, state, command, newLocation);
+            // std::cout << std::setprecision(2) << "ticks: " << state->ticks << " leg: " << i << " spt: " << spt << " prop: " << swingProportion << " z: " << newLocation[2] << endl;
         }
         state->setFootLocation(i, newLocation); 
     }

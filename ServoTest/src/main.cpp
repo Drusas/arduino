@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
+#include "GaitTask.h"
 #include "LegController.h"
 #include "SerialCommands.h"
 #include "ServoController.h"
@@ -8,10 +9,12 @@
 #include "TaskManager.h"
 #include "TrajectoryGenerator.h"
 #include "Utils.h"
-
 #include "Controller.h"
 
 Controller ctlr;
+GaitTask *gaitTask;
+State state;
+Command cmd;
 
 #define SERVO_FREQ 50 // Analog servos run at ~50 Hz updates
 #define SERVOMIN  95 // This is the 'minimum' pulse length count (out of 4096)
@@ -242,6 +245,33 @@ void cmd_circle(SerialCommands* sender) {
   free (buffer);
 }
 
+void cmd_walk(SerialCommands* sender) {
+  TRACE("%s\n", "WALK");
+  char* enable_str = sender->Next();
+	if (enable_str == NULL) {
+		sender->GetSerial()->println("ERROR WALK ENABLE");
+		return;
+  }
+  TRACESC("%s%s\n", "ENABLE, ", enable_str);
+  int enable = atoi(enable_str);
+  if (enable < 1) {
+    cmd.horizontalVelocity[0] = 0.0;
+    gaitTask->setEnabled(false);
+    legRF->setEnabled(false);
+    legLF->setEnabled(false);
+    legRR->setEnabled(false);
+    legLR->setEnabled(false);
+  }
+  else {
+    legRF->setEnabled(true);
+    // legLF->setEnabled(true);
+    // legRR->setEnabled(true);
+    // legLR->setEnabled(true);
+    cmd.horizontalVelocity[0] = 100.5;
+    gaitTask->setEnabled(true);
+  }
+}
+
 void configureJoints()
 {
   jointsLF[HX].minPulse = jointsLF[HY].minPulse = jointsLF[KNEE].minPulse = SERVOMIN;
@@ -402,9 +432,20 @@ void configureTasks() {
     taskManager->addTask(motorsRR[i]);
   }
 
-  legLF->setEnabled(false);
+  // legRF->setEnabled(false);
+  taskManager->addTask(legRF);
   taskManager->addTask(legLF);
+  taskManager->addTask(legRR);
+  taskManager->addTask(legLR);
+
+  taskManager->addTask(gaitTask);
   
+}
+
+void configureController() {
+  state.setAllFootLocations(ctlr.spotConfig->defaultStance);
+  gaitTask = new GaitTask(20, &ctlr, &state, &cmd);
+  gaitTask->setLegs(legRF, legLF, legRR, legLR);
 }
 
 void configureLegs() {
@@ -451,6 +492,9 @@ SerialCommand cmd_stand_("STAND", cmd_stand);
 SerialCommand cmd_sit_("SIT", cmd_sit);
 SerialCommand cmd_lay_("LAY", cmd_lay);
 SerialCommand cmd_circle_("CIRC", cmd_circle);
+SerialCommand cmd_walk_("WALK", cmd_walk);
+
+int gaitCounter;
 
 void setup() {
   Serial.begin(57600);
@@ -467,6 +511,7 @@ void setup() {
   serial_commands_.AddCommand(&cmd_sit_);
   serial_commands_.AddCommand(&cmd_lay_);
   serial_commands_.AddCommand(&cmd_circle_);
+  serial_commands_.AddCommand(&cmd_walk_);
 
   pwm.begin();
   pwm.setOscillatorFrequency(27000000);  // The int.osc. is closer to 27MHz  
@@ -476,12 +521,14 @@ void setup() {
   configureJoints();
   configureMotors();
   configureLegs();
+  configureController();
   configureTasks();
- 
+
   TRACE("%s", "Spot is ready!");
 }
 
 void loop() {
   serial_commands_.ReadSerial();
+
   taskManager->updateTasks();
 }

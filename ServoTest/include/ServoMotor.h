@@ -34,7 +34,7 @@ class ServoMotor : public IMotor, public ITask
 {
   IServoController *servoController;
   Adafruit_PWMServoDriver driver;
-  Joint *joint;
+  
   int actPos;
   int cmdPos;              
   int increment;        // increment to move for each interval - THIS IS HOW WE CONTROL VELOCITY
@@ -45,6 +45,7 @@ class ServoMotor : public IMotor, public ITask
   int clipAngle(int inputAngle);
 
 public:
+  Joint *joint;
   void performUpdate();
 
 public: 
@@ -56,6 +57,7 @@ public:
   void home();
   bool getHomed();
   void setSpeed(uint8_t speed); 
+  int getServoIndex() override;
 };
 
 #endif

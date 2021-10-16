@@ -3,11 +3,12 @@
 
 #include <Adafruit_PWMServoDriver.h>
 #include <Arduino.h>
-#include <Wire.h>
+#include "CircularBuffer.h"
 #include "IKModel.h"
 #include "IMotor.h"
 #include "ITask.h"
 #include "IServoController.h"
+#include <Wire.h>
 
 #define DEBUG_LEGCONTROLLER 0
 
@@ -19,24 +20,27 @@ struct LegPosition {
 
 class LegController : public ITask
 {
-  static const uint8_t NUM_POSITIONS = 4;
+  static const size_t NUM_POSITIONS = 16;
   IServoController *servoController;
   IMotor *hipxMotor; // rotates about the x-axis (y-z plane)
   IMotor *hipyMotor; // rotates about the y-axis (x-z plane)
   IMotor *kneeMotor;
-  Point positionBuffer[NUM_POSITIONS];
+  
+  Point points[NUM_POSITIONS];
+  CircularBuffer<Point> positionBuffer = CircularBuffer<Point>(points, NUM_POSITIONS);
+  //Point positionBuffer[NUM_POSITIONS];
   uint8_t posIdx, bufferIdx;
   LegIKModel ikModel;
   
-  void incrementPosition();
+  bool areAllMotorsAtPosition();
 
 protected:
   void performUpdate();
     
  public:
   LegController(float femurLength, float tibiaLength, float zOffset, float yOffset, int interval, IMotor *hipy, IMotor *hipx, IMotor *knee, IServoController *controller);
-  //void addPosition(uint8_t c, uint8_t s, uint8_t k);
   void addPoint(Point p);
+  void addPoint(float x, float y, float z);
   void moveToXYZ(float x, float y, float z);
   void moveToAngles(uint8_t hx, uint8_t hy, uint8_t k);
   IMotor* getJoint(uint8_t idx);

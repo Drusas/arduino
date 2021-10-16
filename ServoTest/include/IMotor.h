@@ -11,6 +11,7 @@ public:
   virtual void home() = 0;
   virtual bool getHomed() = 0;
   virtual void setSpeed(uint8_t speed) = 0;
+  virtual int getServoIndex() = 0;
 };
 
 #endif
