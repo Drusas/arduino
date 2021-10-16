@@ -42,7 +42,7 @@ void State::getAllFootLocations(float dest[][4]) {
     }
 }
 
-void State::printFootLocations() {
+void State::printfootLocations() {
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 4; j++) {
             std::cout << "[" << i << "][" << j << "]: " << footLocations[i][j] << std::endl;

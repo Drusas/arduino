@@ -7,7 +7,7 @@ static float defaultStance[3][4] = {{   0,   0, -50, -50},
                                     { 220, 220, 220, 220}};
 
 void copyLocations(float src[][4], float dest[][4]) {
-    printf("copyLocations()\n");
+    //printf("copyLocations()\n");
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 4; j++) {
             dest[i][j] = src[i][j];
@@ -34,9 +34,9 @@ void GaitTask::performUpdate() {
         copyLocations(newLocations, prevLocations);
         if (LFLeg != nullptr) {
             // TRACE("GaitTask::PERFORMUPDATE, COUNTER=%d\n", taskCounter);
-            printf("GaitTask::PERFORMUPDATE, COUNTER=%d\n", taskCounter);
+            //printf("GaitTask::PERFORMUPDATE, COUNTER=%d\n", taskCounter);
             printNewLocation();
-            printf("GaitTask::PERFORMUPDATE #2\n");
+            //printf("GaitTask::PERFORMUPDATE #2\n");
             float x = defaultStance[0][0] + newLocations[0][0];
             float y = defaultStance[1][0] - newLocations[1][0];
             float z = defaultStance[2][0] - newLocations[2][0];
@@ -79,7 +79,7 @@ void GaitTask::performUpdate() {
 }
 
 void GaitTask::printNewLocation() {
-    printf("GaitTask::printNewLocation\n");
+    //printf("GaitTask::printNewLocation\n");
     TRACE("X: %5.2f, %5.2f, %5.2f, %5.2f\n", defaultStance[0][0] - (1 * newLocations[0][0]), defaultStance[0][1] - (1 * newLocations[0][1]), defaultStance[0][2] - (1 * newLocations[0][2]), defaultStance[0][3] - (1 * newLocations[0][3]));
     TRACE("Y: %5.2f, %5.2f, %5.2f, %5.2f\n", defaultStance[1][0] - (1 * newLocations[1][0]), defaultStance[1][1] - (1 * newLocations[1][1]), defaultStance[1][3] - (1 * newLocations[1][2]), defaultStance[1][3] - (1 * newLocations[1][3]));
     TRACE("Z: %5.2f, %5.2f, %5.2f, %5.2f\n", defaultStance[2][0] - (1 * newLocations[2][0]), defaultStance[2][1] - (1 * newLocations[2][1]), defaultStance[2][3] - (1 * newLocations[2][2]), defaultStance[2][3] - (1 * newLocations[2][3]));

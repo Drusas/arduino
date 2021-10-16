@@ -21,7 +21,7 @@ public:
     State();
     ~State();
 
-    void printFootLocations();
+    void printfootLocations();
 
     // locations[3][4]
     void setAllFootLocations(float locations[][4]);

@@ -264,9 +264,9 @@ void cmd_walk(SerialCommands* sender) {
   }
   else {
     legRF->setEnabled(true);
-    // legLF->setEnabled(true);
-    // legRR->setEnabled(true);
-    // legLR->setEnabled(true);
+    legLF->setEnabled(true);
+    legRR->setEnabled(true);
+    legLR->setEnabled(true);
     cmd.horizontalVelocity[0] = 100.5;
     gaitTask->setEnabled(true);
   }
