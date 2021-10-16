@@ -19,15 +19,15 @@ void LegController::addPoint(float x, float y, float z) {
 }
 
 void LegController::addPoint(Point p) {
-  printf("addPoint 1\n");
+  printf("LegController::addPoint 1\n");
   if (getEnabled()) {
-    printf("addPoint 2\n");
+    printf("LegController::addPoint 2\n");
     TRACE("%s { %0.2f, %0.2f, %0.2f }\n", "Point", p.x, p.y, p.z);
     if (positionBuffer.isNotFull()) {
       positionBuffer.addElement(p);
     }
     else {
-      printf("addPoint 3\n");
+      printf("LegController::addPoint 3\n");
       TRACE("%s\n", "Buffer full");
       throw std::exception();
     }
@@ -38,25 +38,21 @@ void LegController::performUpdate() {
   if (DEBUG_LEGCONTROLLER > 0) {
     Serial.print(hipyMotor->atPosition()); Serial.print(" ,"); Serial.print(hipxMotor->atPosition()); Serial.print(" ,"); Serial.println(kneeMotor->atPosition());
   }
-  while (!areAllMotorsAtPosition()) {
-    printf("wait motors!\n");
-    ;
-  }
-  printf("wait motors 2\n");
+  printf("LegController::performUpdate() wait motors 2\n");
   if (areAllMotorsAtPosition()) { //  && isNextPositionInBufferValid()) {
     if (positionBuffer.isFull()) {
-      printf("wait motors 3\n");
+      printf("LegController::performUpdate() wait motors BUFFER FULL!\n");
       // throw exception;
       TRACE("%s\n", "buffer full");
       throw std::exception();
     }
     else if (positionBuffer.isNotEmpty()) {
-      printf("wait motors 4\n");
+      printf("LegController::performUpdate() wait motors 4\n");
       Point p = positionBuffer.getElement();
       moveToXYZ(p.x, p.y, p.z);
     }
     else {
-      printf("wait motors 5\n");
+      printf("LegController::performUpdate() wait motors buffer empty\n");
       TRACE("%s\n", "buffer empty");
       // empty no point to move to.
     }
@@ -64,9 +60,9 @@ void LegController::performUpdate() {
 }
 
 bool LegController::areAllMotorsAtPosition() {
-  printf("wait X joint: %d cmd: %d act: %d\n", hipxMotor->getServoIndex(), hipxMotor->cmdPosition(), hipxMotor->actPosition());
-  printf("wait Y joint: %d cmd: %d act: %d\n", hipyMotor->getServoIndex(), hipyMotor->cmdPosition(), hipyMotor->actPosition());
-  printf("wait K joint: %d cmd: %d act: %d\n", kneeMotor->getServoIndex(), kneeMotor->cmdPosition(), kneeMotor->actPosition());
+  printf("LegController::areAllMotorsAtPosition() wait X joint: %d cmd: %d act: %d\n", hipxMotor->getServoIndex(), hipxMotor->cmdPosition(), hipxMotor->actPosition());
+  printf("LegController::areAllMotorsAtPosition() wait Y joint: %d cmd: %d act: %d\n", hipyMotor->getServoIndex(), hipyMotor->cmdPosition(), hipyMotor->actPosition());
+  printf("LegController::areAllMotorsAtPosition() wait K joint: %d cmd: %d act: %d\n", kneeMotor->getServoIndex(), kneeMotor->cmdPosition(), kneeMotor->actPosition());
   return hipyMotor->atPosition() && hipxMotor->atPosition() && kneeMotor->atPosition();
 }
 
@@ -74,7 +70,7 @@ void LegController::followTrajectory(Point *buffer, uint8_t numPoints) {
   for (int i = 0; i < numPoints; i++) {
     do {
       moveToXYZ(buffer[i].x, buffer[i].y, buffer[i].z);
-    } while (!hipyMotor->atPosition() || !hipxMotor->atPosition() || !kneeMotor->atPosition());
+    } while (!hipxMotor->atPosition() || !hipyMotor->atPosition() || !kneeMotor->atPosition());
     
   }
 }
