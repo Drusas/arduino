@@ -39,6 +39,7 @@ protected:
     
  public:
   LegController(float femurLength, float tibiaLength, float zOffset, float yOffset, int interval, IMotor *hipy, IMotor *hipx, IMotor *knee, IServoController *controller);
+  bool isPositionBufferFull();
   void addPoint(Point p);
   void addPoint(float x, float y, float z);
   void moveToXYZ(float x, float y, float z);

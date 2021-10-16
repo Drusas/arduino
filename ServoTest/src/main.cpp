@@ -205,10 +205,10 @@ void cmd_ik(SerialCommands* sender) {
 
 void cmd_stand(SerialCommands* sender) {
   TRACE("%s\n", "STAND");
-  legLF->moveToXYZ(0, 60, 220);
-  legLR->moveToXYZ(-50, 60, 220);
-  legRF->moveToXYZ(0, 60, 220);
-  legRR->moveToXYZ(-50, 60, 220);
+  legLF->moveToXYZ(25, 60, 200);
+  legLR->moveToXYZ(-25, 60, 200);
+  legRF->moveToXYZ(25, 60, 200);
+  legRR->moveToXYZ(-25, 60, 200);
 }
 
 void cmd_lay(SerialCommands* sender) {
@@ -449,22 +449,6 @@ void configureController() {
 }
 
 void configureLegs() {
-  legLF = new LegController(108, 132, 15, 60, 20, motorsLF[HX], motorsLF[HY], motorsLF[KNEE], servoController);
-  legLF->setHxTranslationAndOffset(radians(jointsLF[HX].translate), radians(jointsLF[HX].offset), jointsLF[HX].sign);
-  legLF->setHyTranslationAndOffset(radians(jointsLF[HY].translate), radians(jointsLF[HY].offset), jointsLF[HY].sign);
-  legLF->setKneeTranslationAndOffset(radians(jointsLF[KNEE].translate), radians(jointsLF[KNEE].offset), jointsLF[KNEE].sign);
-  legLF->setHxConstraints(radians(jointsLF[HX].minAngle), radians(jointsLF[HX].maxAngle));
-  legLF->setHyConstraints(radians(jointsLF[HY].minAngle), radians(jointsLF[HY].maxAngle));
-  legLF->setKneeConstraints(radians(jointsLF[KNEE].minAngle), radians(jointsLF[KNEE].maxAngle));
-
-  legLR = new LegController(108, 132, 15, 60, 20, motorsLR[HX], motorsLR[HY], motorsLR[KNEE], servoController);
-  legLR->setHxTranslationAndOffset(radians(jointsLR[HX].translate), radians(jointsLR[HX].offset), jointsLR[HX].sign);
-  legLR->setHyTranslationAndOffset(radians(jointsLR[HY].translate), radians(jointsLR[HY].offset), jointsLR[HY].sign);
-  legLR->setKneeTranslationAndOffset(radians(jointsLR[KNEE].translate), radians(jointsLR[KNEE].offset), jointsLR[KNEE].sign);
-  legLR->setHxConstraints(radians(jointsLR[HX].minAngle), radians(jointsLR[HX].maxAngle));
-  legLR->setHyConstraints(radians(jointsLR[HY].minAngle), radians(jointsLR[HY].maxAngle));
-  legLR->setKneeConstraints(radians(jointsLR[KNEE].minAngle), radians(jointsLR[KNEE].maxAngle));
-  
   legRF = new LegController(108, 132, 15, 60, 20, motorsRF[HX], motorsRF[HY], motorsRF[KNEE], servoController);
   legRF->setHxTranslationAndOffset(radians(jointsRF[HX].translate), radians(jointsRF[HX].offset), jointsRF[HX].sign);
   legRF->setHyTranslationAndOffset(radians(jointsRF[HY].translate), radians(jointsRF[HY].offset), jointsRF[HY].sign);
@@ -472,6 +456,16 @@ void configureLegs() {
   legRF->setHxConstraints(radians(jointsRF[HX].minAngle), radians(jointsRF[HX].maxAngle));
   legRF->setHyConstraints(radians(jointsRF[HY].minAngle), radians(jointsRF[HY].maxAngle));
   legRF->setKneeConstraints(radians(jointsRF[KNEE].minAngle), radians(jointsRF[KNEE].maxAngle));
+  legRF->setId("RFLeg");
+  
+  legLF = new LegController(108, 132, 15, 60, 20, motorsLF[HX], motorsLF[HY], motorsLF[KNEE], servoController);
+  legLF->setHxTranslationAndOffset(radians(jointsLF[HX].translate), radians(jointsLF[HX].offset), jointsLF[HX].sign);
+  legLF->setHyTranslationAndOffset(radians(jointsLF[HY].translate), radians(jointsLF[HY].offset), jointsLF[HY].sign);
+  legLF->setKneeTranslationAndOffset(radians(jointsLF[KNEE].translate), radians(jointsLF[KNEE].offset), jointsLF[KNEE].sign);
+  legLF->setHxConstraints(radians(jointsLF[HX].minAngle), radians(jointsLF[HX].maxAngle));
+  legLF->setHyConstraints(radians(jointsLF[HY].minAngle), radians(jointsLF[HY].maxAngle));
+  legLF->setKneeConstraints(radians(jointsLF[KNEE].minAngle), radians(jointsLF[KNEE].maxAngle));
+  legLF->setId("LFLeg");
 
   legRR = new LegController(108, 132, 15, 60, 20, motorsRR[HX], motorsRR[HY], motorsRR[KNEE], servoController);
   legRR->setHxTranslationAndOffset(radians(jointsRR[HX].translate), radians(jointsRR[HX].offset), jointsRR[HX].sign);
@@ -480,6 +474,16 @@ void configureLegs() {
   legRR->setHxConstraints(radians(jointsRR[HX].minAngle), radians(jointsRR[HX].maxAngle));
   legRR->setHyConstraints(radians(jointsRR[HY].minAngle), radians(jointsRR[HY].maxAngle));
   legRR->setKneeConstraints(radians(jointsRR[KNEE].minAngle), radians(jointsRR[KNEE].maxAngle));
+  legRR->setId("RRLeg");
+
+  legLR = new LegController(108, 132, 15, 60, 20, motorsLR[HX], motorsLR[HY], motorsLR[KNEE], servoController);
+  legLR->setHxTranslationAndOffset(radians(jointsLR[HX].translate), radians(jointsLR[HX].offset), jointsLR[HX].sign);
+  legLR->setHyTranslationAndOffset(radians(jointsLR[HY].translate), radians(jointsLR[HY].offset), jointsLR[HY].sign);
+  legLR->setKneeTranslationAndOffset(radians(jointsLR[KNEE].translate), radians(jointsLR[KNEE].offset), jointsLR[KNEE].sign);
+  legLR->setHxConstraints(radians(jointsLR[HX].minAngle), radians(jointsLR[HX].maxAngle));
+  legLR->setHyConstraints(radians(jointsLR[HY].minAngle), radians(jointsLR[HY].maxAngle));
+  legLR->setKneeConstraints(radians(jointsLR[KNEE].minAngle), radians(jointsLR[KNEE].maxAngle));
+  legLR->setId("LRLeg");
 }
 
 SerialCommand cmd_servo_enable_("ENABLE", cmd_servo_enable);

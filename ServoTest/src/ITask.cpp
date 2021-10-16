@@ -19,3 +19,11 @@ void ITask::setEnabled(bool state) {
 bool ITask::getEnabled() {
   return enabled;
 }
+
+void ITask::setId(std::string name) {
+  id = name;
+}
+
+std::string ITask::getId() {
+  return id;
+}

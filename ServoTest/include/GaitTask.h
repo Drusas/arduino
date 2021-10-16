@@ -18,6 +18,7 @@ class GaitTask : public ITask {
     LegController *LRLeg;
 
     void printNewLocation();
+    bool areAnyLegBuffersFull();
 
 protected:
     void performUpdate() override;

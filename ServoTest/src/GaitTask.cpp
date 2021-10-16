@@ -2,9 +2,9 @@
 #include "Utils.h"
 
 /*                                     RF   LF   RR   LR      */            
-static float defaultStance[3][4] = {{   0,   0, -50, -50},
+static float defaultStance[3][4] = {{  25,  25, -25, -25},
                                     {  60,  60,  60,  60},
-                                    { 220, 220, 220, 220}};
+                                    { 200, 200, 200, 200}};
 
 void copyLocations(float src[][4], float dest[][4]) {
     for (int i = 0; i < 3; i++) {
@@ -28,12 +28,17 @@ GaitTask::GaitTask(int interval, Controller *cntlr, State *ste, Command *cmd) {
 }
 
 void GaitTask::performUpdate() {
-    if ((controller != nullptr)) { 
+    TRACE("GaitTask::PERFORMUPDATE, COUNTER=%d\n", taskCounter);
+    if ((controller != nullptr)) {
+        taskCounter++;
+        if (areAnyLegBuffersFull()) {
+            printf("GaitTask::performUpdate a leg buffer is full() %d %d %d %d\n", RFLeg->isPositionBufferFull(), LFLeg->isPositionBufferFull(), RRLeg->isPositionBufferFull(), LRLeg->isPositionBufferFull());
+            return;
+        } 
         controller->stepGait(state, command, newLocations, footContacts);
+        printNewLocation();
         copyLocations(newLocations, prevLocations);
         if (LFLeg != nullptr) {
-            TRACE("GaitTask::PERFORMUPDATE, COUNTER=%d\n", taskCounter);
-            printNewLocation();
             float x = defaultStance[0][0] + newLocations[0][0];
             float y = defaultStance[1][0] - newLocations[1][0];
             float z = defaultStance[2][0] - newLocations[2][0];
@@ -54,10 +59,7 @@ void GaitTask::performUpdate() {
             z = defaultStance[2][3] - newLocations[2][3];
             LRLeg->addPoint(x, y, z);
         }
-        if (taskCounter % 10 == 0) {
-        }
     }
-    taskCounter++;
 }
 
 void GaitTask::printNewLocation() {
@@ -79,4 +81,17 @@ void GaitTask::setLegs(LegController *RF, LegController *LF, LegController *RR, 
     LFLeg = LF;
     RRLeg = RR;
     LRLeg = LR;
+}
+
+bool GaitTask::areAnyLegBuffersFull() {
+    if (RFLeg == nullptr || LFLeg == nullptr || RRLeg == nullptr || LRLeg == nullptr) {
+        return true;
+    }
+    bool result = false;
+    result = RFLeg->isPositionBufferFull() || LFLeg->isPositionBufferFull() || RRLeg->isPositionBufferFull() || LRLeg->isPositionBufferFull();
+    printf("%d %d %d %d\n", RFLeg->isPositionBufferFull(), LFLeg->isPositionBufferFull(), RRLeg->isPositionBufferFull(), LRLeg->isPositionBufferFull());
+    // result |= LFLeg->isPositionBufferFull();
+    // result |= RRLeg->isPositionBufferFull();
+    // result |= LRLeg->isPositionBufferFull();
+    return result;
 }

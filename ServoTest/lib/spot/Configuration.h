@@ -42,9 +42,9 @@ public:
                                  {-deltaY,         deltaY,          -deltaY,          deltaY         },
                                  { 0,              0,                0,               0              }};
 
-    // float defaultStance[3][4] = {{   0,   0, -50, -50},
-    //                              {  60,  60,  60,  60},
-    //                              { 220, 220, 220, 220}};
+    // float defaultStance[3][4] = {{  25,  25, -25, -25},
+    //                                 {  60,  60,  60,  60},
+    //                                 { 200, 200, 200, 200}};
     
     Configuration();
     ~Configuration();

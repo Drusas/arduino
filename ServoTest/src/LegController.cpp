@@ -25,7 +25,8 @@ void LegController::addPoint(Point p) {
       positionBuffer.addElement(p);
     }
     else {
-      TRACE("%s\n", "Buffer full, crash...");
+      TRACE("Id:%s %s\n", id.c_str(), "Buffer full, crash...");
+      printf("Id:%s %s\n", id.c_str(), "Buffer full, crash...");
       throw std::exception();
     }
   }
@@ -36,11 +37,7 @@ void LegController::performUpdate() {
     Serial.print(hipyMotor->atPosition()); Serial.print(" ,"); Serial.print(hipxMotor->atPosition()); Serial.print(" ,"); Serial.println(kneeMotor->atPosition());
   }
   if (areAllMotorsAtPosition()) { 
-    if (positionBuffer.isFull()) {
-      TRACE("%s\n", "buffer full, crash...");
-      throw std::exception();
-    }
-    else if (positionBuffer.isNotEmpty()) {
+    if (positionBuffer.isNotEmpty()) {
       Point p = positionBuffer.getElement();
       moveToXYZ(p.x, p.y, p.z);
     }
@@ -136,4 +133,8 @@ void LegController::setHyConstraints(float min, float max) {
 
 void LegController::setKneeConstraints(float min, float max) {
   ikModel.setKneeConstraints(min, max);
+}
+
+bool LegController::isPositionBufferFull() {
+  return positionBuffer.isFull();
 }
