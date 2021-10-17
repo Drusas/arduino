@@ -17,7 +17,7 @@ public:
     float defaultZRef = -0.16;
 
     // SWING
-    float zClearance = 7.0;
+    float zClearance = 15.0;
     float alpha = 0.5;
 
     // GAIT
@@ -42,7 +42,7 @@ public:
                                  {-deltaY,         deltaY,          -deltaY,          deltaY         },
                                  { 0,              0,                0,               0              }};
 
-    // float defaultStance[3][4] = {{  25,  25, -25, -25},
+    // float defaultStance[3][4] = {{  24,  25, -25, -25},
     //                                 {  60,  60,  60,  60},
     //                                 { 200, 200, 200, 200}};
     
