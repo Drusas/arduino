@@ -17,7 +17,7 @@ public:
     float defaultZRef = -0.16;
 
     // SWING
-    float zClearance = 15.0;
+    float zClearance = 50.0;
     float alpha = 0.5;
 
     // GAIT

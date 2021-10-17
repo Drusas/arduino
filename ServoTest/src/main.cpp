@@ -11,14 +11,14 @@
 #include "Utils.h"
 #include "Controller.h"
 
+#define SERVO_FREQ 50 // Analog servos run at ~50 Hz updates
+#define SERVOMIN  95 // This is the 'minimum' pulse length count (out of 4096)
+#define SERVOMAX  455 // This is the 'maximum' pulse length count (out of 4096)
+
 Controller ctlr;
 GaitTask *gaitTask;
 State state;
 Command cmd;
-
-#define SERVO_FREQ 50 // Analog servos run at ~50 Hz updates
-#define SERVOMIN  95 // This is the 'minimum' pulse length count (out of 4096)
-#define SERVOMAX  455 // This is the 'maximum' pulse length count (out of 4096)
 
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 IServoController* servoController;
@@ -449,7 +449,7 @@ void configureController() {
 }
 
 void configureLegs() {
-  legRF = new LegController(108, 132, 15, 60, 20, motorsRF[HX], motorsRF[HY], motorsRF[KNEE], servoController);
+  legRF = new LegController(20, 108, 132, 15, 60, motorsRF[HX], motorsRF[HY], motorsRF[KNEE], servoController);
   legRF->setHxTranslationAndOffset(radians(jointsRF[HX].translate), radians(jointsRF[HX].offset), jointsRF[HX].sign);
   legRF->setHyTranslationAndOffset(radians(jointsRF[HY].translate), radians(jointsRF[HY].offset), jointsRF[HY].sign);
   legRF->setKneeTranslationAndOffset(radians(jointsRF[KNEE].translate), radians(jointsRF[KNEE].offset), jointsRF[KNEE].sign);
@@ -458,7 +458,7 @@ void configureLegs() {
   legRF->setKneeConstraints(radians(jointsRF[KNEE].minAngle), radians(jointsRF[KNEE].maxAngle));
   legRF->setId("RFLeg");
   
-  legLF = new LegController(108, 132, 15, 60, 20, motorsLF[HX], motorsLF[HY], motorsLF[KNEE], servoController);
+  legLF = new LegController(20, 108, 132, 15, 60, motorsLF[HX], motorsLF[HY], motorsLF[KNEE], servoController);
   legLF->setHxTranslationAndOffset(radians(jointsLF[HX].translate), radians(jointsLF[HX].offset), jointsLF[HX].sign);
   legLF->setHyTranslationAndOffset(radians(jointsLF[HY].translate), radians(jointsLF[HY].offset), jointsLF[HY].sign);
   legLF->setKneeTranslationAndOffset(radians(jointsLF[KNEE].translate), radians(jointsLF[KNEE].offset), jointsLF[KNEE].sign);
@@ -467,7 +467,7 @@ void configureLegs() {
   legLF->setKneeConstraints(radians(jointsLF[KNEE].minAngle), radians(jointsLF[KNEE].maxAngle));
   legLF->setId("LFLeg");
 
-  legRR = new LegController(108, 132, 15, 60, 20, motorsRR[HX], motorsRR[HY], motorsRR[KNEE], servoController);
+  legRR = new LegController(20, 108, 132, 15, 60, motorsRR[HX], motorsRR[HY], motorsRR[KNEE], servoController);
   legRR->setHxTranslationAndOffset(radians(jointsRR[HX].translate), radians(jointsRR[HX].offset), jointsRR[HX].sign);
   legRR->setHyTranslationAndOffset(radians(jointsRR[HY].translate), radians(jointsRR[HY].offset), jointsRR[HY].sign);
   legRR->setKneeTranslationAndOffset(radians(jointsRR[KNEE].translate), radians(jointsRR[KNEE].offset), jointsRR[KNEE].sign);
@@ -476,7 +476,7 @@ void configureLegs() {
   legRR->setKneeConstraints(radians(jointsRR[KNEE].minAngle), radians(jointsRR[KNEE].maxAngle));
   legRR->setId("RRLeg");
 
-  legLR = new LegController(108, 132, 15, 60, 20, motorsLR[HX], motorsLR[HY], motorsLR[KNEE], servoController);
+  legLR = new LegController(20, 108, 132, 15, 60, motorsLR[HX], motorsLR[HY], motorsLR[KNEE], servoController);
   legLR->setHxTranslationAndOffset(radians(jointsLR[HX].translate), radians(jointsLR[HX].offset), jointsLR[HX].sign);
   legLR->setHyTranslationAndOffset(radians(jointsLR[HY].translate), radians(jointsLR[HY].offset), jointsLR[HY].sign);
   legLR->setKneeTranslationAndOffset(radians(jointsLR[KNEE].translate), radians(jointsLR[KNEE].offset), jointsLR[KNEE].sign);
@@ -497,8 +497,6 @@ SerialCommand cmd_sit_("SIT", cmd_sit);
 SerialCommand cmd_lay_("LAY", cmd_lay);
 SerialCommand cmd_circle_("CIRC", cmd_circle);
 SerialCommand cmd_walk_("WALK", cmd_walk);
-
-int gaitCounter;
 
 void setup() {
   Serial.begin(57600);
@@ -528,11 +526,10 @@ void setup() {
   configureController();
   configureTasks();
 
-  TRACE("%s", "Spot is ready!");
+  TRACE("%s", "Dogbot is ready!");
 }
 
 void loop() {
   serial_commands_.ReadSerial();
-
   taskManager->updateTasks();
 }

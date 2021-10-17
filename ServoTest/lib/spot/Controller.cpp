@@ -39,7 +39,6 @@ void Controller::stepGait(State *state, Command *command, float newFootLocations
             stanceController->nextFootLocation(i, state, command, newLocation);
         } 
         else {
-            int spt = gaitController->getSubPhaseTicks(state->ticks);
             float swingProportion = (float)(gaitController->getSubPhaseTicks(state->ticks)) / spotConfig->swingTicks;
             swingController->nextFootLocation(swingProportion, i, state, command, newLocation);
             // std::cout << std::setprecision(2) << "ticks: " << state->ticks << " leg: " << i << " spt: " << spt << " prop: " << swingProportion << " z: " << newLocation[2] << endl;

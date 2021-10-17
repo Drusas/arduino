@@ -3,8 +3,8 @@
 
 /*                                     RF   LF   RR   LR      */            
 static float gaitDefaultStance[3][4] = {{  25,  25, -25, -25},
-                                    {  60,  60,  60,  60},
-                                    { 200, 200, 200, 200}};
+                                        {  60,  60,  60,  60},
+                                        { 200, 200, 200, 200}};
 
 void copyLocations(float src[][4], float dest[][4]) {
     for (int i = 0; i < 3; i++) {

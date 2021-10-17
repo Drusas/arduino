@@ -38,7 +38,7 @@ protected:
   void performUpdate();
     
  public:
-  LegController(float femurLength, float tibiaLength, float zOffset, float yOffset, int interval, IMotor *hipy, IMotor *hipx, IMotor *knee, IServoController *controller);
+  LegController(int interval, float femurLength, float tibiaLength, float zOffset, float yOffset, IMotor *hipy, IMotor *hipx, IMotor *knee, IServoController *controller);
   bool isPositionBufferFull();
   void addPoint(Point p);
   void addPoint(float x, float y, float z);

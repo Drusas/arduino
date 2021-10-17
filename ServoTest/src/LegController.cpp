@@ -1,8 +1,8 @@
 #include <Arduino.h>
 #include "LegController.h"
 
-LegController::LegController(float femurLength, float tibiaLength, float zOffset, float yOffset, 
-                             int interval, IMotor *capsule, IMotor *shoulder, IMotor *knee, IServoController *controller) {
+LegController::LegController(int interval, float femurLength, float tibiaLength, float zOffset, float yOffset, 
+                             IMotor *capsule, IMotor *shoulder, IMotor *knee, IServoController *controller) {
   setEnabled(false);
   servoController = controller;
   updateInterval = interval;
