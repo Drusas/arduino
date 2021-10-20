@@ -147,7 +147,6 @@ void cmd_leg(SerialCommands* sender) {
   }
 }
 
-// IK idx x y z
 void cmd_ik(SerialCommands* sender) {
   TRACESC("%s\n", "Start IK command");
   char* idx_str = sender->Next();

@@ -31,7 +31,7 @@ protected:
     Command *cmd;
 };
 
-TEST_F(SpotControllerTest, DISABLED_FirstTest) {
+TEST_F(SpotControllerTest, FirstTest) {
     float currentLocation[3] = {0.0, 0.0, 0.0};
     state->getFootLocation(0, currentLocation);
     float tol = 0.001;
@@ -41,7 +41,7 @@ TEST_F(SpotControllerTest, DISABLED_FirstTest) {
     EXPECT_NEAR(currentLocation[2], cfg->defaultStance[2][0], tol);
 }
 
-TEST_F(SpotControllerTest, DISABLED_StepGaitPhaseContactTest) {
+TEST_F(SpotControllerTest, StepGaitPhaseContactTest) {
 
     /*
     Test that foot contacts are correct for each phase,
@@ -132,7 +132,7 @@ void copyLocations(float src[][4], float dest[][4]) {
     }
 }
 
-TEST_F(SpotControllerTest, DISABLED_StepGaitMovingForwardTest) {
+TEST_F(SpotControllerTest, StepGaitMovingForwardTest) {
 
     /*
     Test that each foot location is correct when moving forward
