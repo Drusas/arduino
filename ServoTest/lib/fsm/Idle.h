@@ -8,6 +8,7 @@ class Idle : public QuadrupedFsm {
 public:
     void entry() override;
     void react(ToStand const &event) override;
+    void react(ToDisable const &event) override;
 };
 
 #endif

@@ -8,7 +8,7 @@ void Enabled::entry() {
     std::cout << "state:enabled" << std::endl;
 }
 
-void Enabled::react(Disable const &event) {
+void Enabled::react(ToDisable const &event) {
         transit<Disabled>();
 }
 

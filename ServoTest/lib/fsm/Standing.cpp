@@ -1,3 +1,4 @@
+#include "Disabled.h"
 #include "Idle.h"
 #include "Standing.h"
 #include "Walking.h"
@@ -13,4 +14,8 @@ void Standing::react(ToIdle const &event) {
 
 void Standing::react(ToWalk const &event) {
         transit<Walking>();
+}
+
+void Standing::react(ToDisable const &event) {
+        transit<Disabled>();
 }

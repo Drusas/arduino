@@ -9,6 +9,7 @@ public:
     void entry() override;
     void react(ToIdle const &event) override;
     void react(ToWalk const &event) override;
+    void react(ToDisable const &event) override;
 };
 
 #endif

@@ -4,8 +4,8 @@
 #include <tinyfsm.hpp>
 
 struct ModeEvent : tinyfsm::Event {};
-struct Disable : ModeEvent {};
-struct Enable : ModeEvent {};
+struct ToDisable : ModeEvent {};
+struct ToEnable : ModeEvent {};
 struct ToIdle : ModeEvent {};
 struct ToSit : ModeEvent {};
 struct ToStand : ModeEvent {};
@@ -15,8 +15,8 @@ class QuadrupedFsm : public tinyfsm::Fsm<QuadrupedFsm> {
 public:
     
   void react(tinyfsm::Event const &) { }; /* default reaction for unhandled events */
-  virtual void react(Disable const &event) {};
-  virtual void react(Enable const &event) {};
+  virtual void react(ToDisable const &event) {};
+  virtual void react(ToEnable const &event) {};
   virtual void react(ToIdle const &) {};
   virtual void react(ToSit const &) {};
   virtual void react(ToStand const &) {};

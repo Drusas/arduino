@@ -7,7 +7,7 @@ class Disabled : public QuadrupedFsm {
 
 public:
     void entry() override;
-    void react(Enable const &event) override;
+    void react(ToEnable const &event) override;
 };
 
 #endif
