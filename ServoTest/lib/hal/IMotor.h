@@ -1,6 +1,8 @@
 #ifndef _IMOTOR_H
 #define _IMOTOR_H
-#include <Arduino.h>
+
+#include "stdint.h"
+// #include <Arduino.h>
 
 class IMotor {
 public:

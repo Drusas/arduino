@@ -22,10 +22,31 @@ protected:
     // }
 };
 
+class MockServoController : public IServoController {
+    bool enabled;
+public:
+    void setEnabled(bool state) override {
+        enabled = state;
+    }
+
+    bool getEnabled() override {
+        return enabled;
+    }
+
+    void addMotor(IMotor *motor) override {};
+
+    void homeMotors() override {};
+
+    bool getHomed() override { return true; };
+};
+
 TEST_F(QuadrupedFsmTest, ConstructorTest) {
     EXPECT_TRUE(QuadrupedFsm::is_in_state<Disabled>());
 
-    QuadrupedFsm::dispatch(ToEnable());
+    MockServoController mock;
+    ToEnable e;
+    e.sController = &mock;
+    QuadrupedFsm::dispatch(e);
     EXPECT_TRUE(QuadrupedFsm::is_in_state<Enabled>());
 
     QuadrupedFsm::dispatch(ToDisable());
@@ -46,7 +67,10 @@ TEST_F(QuadrupedFsmTest, StateTraversalTest) {
     // WALK -> STAND
     // STAND -> IDLE
     
-    QuadrupedFsm::dispatch(ToEnable());
+    MockServoController mock;
+    ToEnable e;
+    e.sController = &mock;
+    QuadrupedFsm::dispatch(e);
     EXPECT_TRUE(QuadrupedFsm::is_in_state<Enabled>());
 
     QuadrupedFsm::dispatch(ToIdle());
@@ -79,14 +103,17 @@ TEST_F(QuadrupedFsmTest, StateTraversalTest) {
 TEST_F(QuadrupedFsmTest, DisableTest) {
     
     // idle -> disabled
-    QuadrupedFsm::dispatch(ToEnable());
+    MockServoController mock;
+    ToEnable e;
+    e.sController = &mock;
+    QuadrupedFsm::dispatch(e);
     QuadrupedFsm::dispatch(ToIdle());
     EXPECT_TRUE(QuadrupedFsm::is_in_state<Idle>());
     QuadrupedFsm::dispatch(ToDisable());
     EXPECT_TRUE(QuadrupedFsm::is_in_state<Disabled>());
 
     // standing -> disabled
-    QuadrupedFsm::dispatch(ToEnable());
+    QuadrupedFsm::dispatch(e);
     QuadrupedFsm::dispatch(ToIdle());
     QuadrupedFsm::dispatch(ToStand());
     EXPECT_TRUE(QuadrupedFsm::is_in_state<Standing>());
@@ -94,7 +121,7 @@ TEST_F(QuadrupedFsmTest, DisableTest) {
     EXPECT_TRUE(QuadrupedFsm::is_in_state<Disabled>());
 
     // walking -> disabled
-    QuadrupedFsm::dispatch(ToEnable());
+    QuadrupedFsm::dispatch(e);
     QuadrupedFsm::dispatch(ToIdle());
     QuadrupedFsm::dispatch(ToStand());
     QuadrupedFsm::dispatch(ToWalk());

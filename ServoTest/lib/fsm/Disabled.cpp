@@ -8,5 +8,8 @@ void Disabled::entry() {
 }
 
 void Disabled::react(ToEnable const &event) {
+    if (event.sController != nullptr) {
+        event.sController->setEnabled(true);
         transit<Enabled>();
+    }
 }

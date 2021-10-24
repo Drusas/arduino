@@ -1,9 +1,12 @@
 #ifndef _QUADRUPED_FSM_H
 #define _QUADRUPED_FSM_H
 
+#include "..\hal\IServoController.h"
 #include <tinyfsm.hpp>
 
-struct ModeEvent : tinyfsm::Event {};
+struct ModeEvent : tinyfsm::Event {
+  IServoController *sController;
+};
 struct ToDisable : ModeEvent {};
 struct ToEnable : ModeEvent {};
 struct ToIdle : ModeEvent {};
@@ -12,6 +15,7 @@ struct ToStand : ModeEvent {};
 struct ToWalk : ModeEvent {};
 
 class QuadrupedFsm : public tinyfsm::Fsm<QuadrupedFsm> {
+
 public:
     
   void react(tinyfsm::Event const &) { }; /* default reaction for unhandled events */
