@@ -6,7 +6,7 @@
 #include "CircularBuffer.h"
 #include "IKModel.h"
 #include "IMotor.h"
-#include "ITask.h"
+#include "ArdTask.h"
 #include "IServoController.h"
 #include <Wire.h>
 
@@ -18,7 +18,7 @@ struct LegPosition {
   uint8_t knee;
 };
 
-class LegController : public ITask
+class LegController : public ArdTask
 {
   static const size_t NUM_POSITIONS = 16;
   IServoController *servoController;

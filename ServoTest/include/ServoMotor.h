@@ -5,7 +5,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include "IMotor.h"
-#include "ITask.h"
+#include "ArdTask.h"
 #include "IServoController.h"
 
 
@@ -30,7 +30,7 @@ struct Joint {
   int sign;
 };
 
-class ServoMotor : public IMotor, public ITask
+class ServoMotor : public IMotor, public ArdTask
 {
   IServoController *servoController;
   Adafruit_PWMServoDriver driver;

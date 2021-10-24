@@ -1,8 +1,8 @@
 #include "Controller.h"
-#include "ITask.h"
+#include "ArdTask.h"
 #include "LegController.h"
 
-class GaitTask : public ITask {
+class GaitTask : public ArdTask {
     Controller *controller;
     State *state;
     Command *command;
