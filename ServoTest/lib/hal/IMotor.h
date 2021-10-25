@@ -1,7 +1,9 @@
 #ifndef _IMOTOR_H
 #define _IMOTOR_H
 
+#include "ITask.h"
 #include "stdint.h"
+
 // #include <Arduino.h>
 
 class IMotor {
@@ -14,6 +16,8 @@ public:
   virtual bool getHomed() = 0;
   virtual void setSpeed(uint8_t speed) = 0;
   virtual int getServoIndex() = 0;
+  virtual void setEnabled(bool state);
+  virtual bool getEnabled();
 };
 
 #endif

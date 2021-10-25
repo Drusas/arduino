@@ -9,7 +9,10 @@ void Enabled::entry() {
 }
 
 void Enabled::react(ToDisable const &event) {
-        transit<Disabled>();
+        if (event.sController != nullptr) {
+                event.sController->setEnabled(false);
+                transit<Disabled>();
+        }
 }
 
 void Enabled::react(ToIdle const &event) {

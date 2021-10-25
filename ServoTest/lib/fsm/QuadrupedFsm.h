@@ -7,8 +7,18 @@
 struct ModeEvent : tinyfsm::Event {
   IServoController *sController;
 };
-struct ToDisable : ModeEvent {};
-struct ToEnable : ModeEvent {};
+struct ToDisable : ModeEvent {
+  IServoController *sController;
+  ToDisable(IServoController *sc) : sController(sc) {
+    // sController = sc;
+  }
+};
+struct ToEnable : tinyfsm::Event {
+  IServoController *sController;
+  ToEnable(IServoController *sc) : sController(sc) {
+    // sController = sc;
+  }
+};
 struct ToIdle : ModeEvent {};
 struct ToSit : ModeEvent {};
 struct ToStand : ModeEvent {};

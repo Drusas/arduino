@@ -10,6 +10,9 @@ ServoController::ServoController(uint8_t maxNumberMotorsToManage) :
 
 void ServoController::setEnabled(bool state) {
   this->enabled = state;
+  for (uint8_t i = 0; i < motorManagementIdx; i++) {
+    motors[i]->setEnabled(state);
+  }
 }
 
 bool ServoController::getEnabled() {

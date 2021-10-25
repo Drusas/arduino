@@ -44,12 +44,12 @@ TEST_F(QuadrupedFsmTest, ConstructorTest) {
     EXPECT_TRUE(QuadrupedFsm::is_in_state<Disabled>());
 
     MockServoController mock;
-    ToEnable e;
-    e.sController = &mock;
+    ToEnable e(&mock);
     QuadrupedFsm::dispatch(e);
     EXPECT_TRUE(QuadrupedFsm::is_in_state<Enabled>());
 
-    QuadrupedFsm::dispatch(ToDisable());
+    ToDisable d(&mock);
+    QuadrupedFsm::dispatch(d);
     EXPECT_TRUE(QuadrupedFsm::is_in_state<Disabled>());
 }
 
@@ -68,8 +68,7 @@ TEST_F(QuadrupedFsmTest, StateTraversalTest) {
     // STAND -> IDLE
     
     MockServoController mock;
-    ToEnable e;
-    e.sController = &mock;
+    ToEnable e(&mock);
     QuadrupedFsm::dispatch(e);
     EXPECT_TRUE(QuadrupedFsm::is_in_state<Enabled>());
 
@@ -96,7 +95,8 @@ TEST_F(QuadrupedFsmTest, StateTraversalTest) {
     QuadrupedFsm::dispatch(ToIdle());
     EXPECT_TRUE(QuadrupedFsm::is_in_state<Idle>());
 
-    QuadrupedFsm::dispatch(ToDisable());
+    ToDisable d(&mock);
+    QuadrupedFsm::dispatch(d);
     EXPECT_TRUE(QuadrupedFsm::is_in_state<Disabled>());
 }
 
@@ -104,12 +104,12 @@ TEST_F(QuadrupedFsmTest, DisableTest) {
     
     // idle -> disabled
     MockServoController mock;
-    ToEnable e;
-    e.sController = &mock;
+    ToEnable e(&mock);
     QuadrupedFsm::dispatch(e);
     QuadrupedFsm::dispatch(ToIdle());
     EXPECT_TRUE(QuadrupedFsm::is_in_state<Idle>());
-    QuadrupedFsm::dispatch(ToDisable());
+    ToDisable d(&mock);
+    QuadrupedFsm::dispatch(d);
     EXPECT_TRUE(QuadrupedFsm::is_in_state<Disabled>());
 
     // standing -> disabled
@@ -117,7 +117,7 @@ TEST_F(QuadrupedFsmTest, DisableTest) {
     QuadrupedFsm::dispatch(ToIdle());
     QuadrupedFsm::dispatch(ToStand());
     EXPECT_TRUE(QuadrupedFsm::is_in_state<Standing>());
-    QuadrupedFsm::dispatch(ToDisable());
+    QuadrupedFsm::dispatch(d);
     EXPECT_TRUE(QuadrupedFsm::is_in_state<Disabled>());
 
     // walking -> disabled
@@ -126,6 +126,6 @@ TEST_F(QuadrupedFsmTest, DisableTest) {
     QuadrupedFsm::dispatch(ToStand());
     QuadrupedFsm::dispatch(ToWalk());
     EXPECT_TRUE(QuadrupedFsm::is_in_state<Walking>());
-    QuadrupedFsm::dispatch(ToDisable());
+    QuadrupedFsm::dispatch(d);
     EXPECT_TRUE(QuadrupedFsm::is_in_state<Disabled>());
 }

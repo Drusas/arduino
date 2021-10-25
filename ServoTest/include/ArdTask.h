@@ -9,6 +9,13 @@ protected:
     unsigned long milliSeconds() override {
         return millis();
     }
+
+    virtual void performUpdate() override {};
+
+public:
+    void setEnabled(bool state) override {
+       ITask::setEnabled(state);
+    }
 };
 
 #endif

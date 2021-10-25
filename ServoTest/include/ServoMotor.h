@@ -30,7 +30,7 @@ struct Joint {
   int sign;
 };
 
-class ServoMotor : public IMotor, public ArdTask
+class ServoMotor : public IMotor , public ArdTask
 {
   IServoController *servoController;
   Adafruit_PWMServoDriver driver;
@@ -46,7 +46,7 @@ class ServoMotor : public IMotor, public ArdTask
 
 public:
   Joint *joint;
-  void performUpdate();
+  void performUpdate() override;
 
 public: 
   ServoMotor(int interval, Joint *servoJoint, IServoController *controller, Adafruit_PWMServoDriver pwmDriver);
@@ -58,6 +58,8 @@ public:
   bool getHomed();
   void setSpeed(uint8_t speed); 
   int getServoIndex() override;
+  void setEnabled(bool state) override;
+  bool getEnabled() override;
 };
 
 #endif

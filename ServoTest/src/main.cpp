@@ -10,10 +10,14 @@
 #include "TrajectoryGenerator.h"
 #include "Utils.h"
 #include "Controller.h"
+#include "QuadrupedFsm.h"
+#include "Disabled.h"
 
 #define SERVO_FREQ 50 // Analog servos run at ~50 Hz updates
 #define SERVOMIN  95 // This is the 'minimum' pulse length count (out of 4096)
 #define SERVOMAX  455 // This is the 'maximum' pulse length count (out of 4096)
+
+FSM_INITIAL_STATE(QuadrupedFsm, Disabled);
 
 Controller ctlr;
 GaitTask *gaitTask;
@@ -53,14 +57,16 @@ void cmd_unrecognized(SerialCommands* sender, const char* cmd) {
 
 void cmd_servo_enable(SerialCommands* sender) {
   enabled = !enabled;
-  servoController->setEnabled(enabled);
-  // taskManager->setTasksEnabled(enabled);
-  for (uint8_t i = 0; i < 3; i++) {
-    motorsLF[i]->setEnabled(enabled);
-    motorsLR[i]->setEnabled(enabled);
-    motorsRF[i]->setEnabled(enabled);
-    motorsRR[i]->setEnabled(enabled);
-  }
+  // servoController->setEnabled(enabled);
+  // // taskManager->setTasksEnabled(enabled);
+  // for (uint8_t i = 0; i < 3; i++) {
+  //   motorsLF[i]->setEnabled(enabled);
+  //   motorsLR[i]->setEnabled(enabled);
+  //   motorsRF[i]->setEnabled(enabled);
+  //   motorsRR[i]->setEnabled(enabled);
+  // }
+
+  QuadrupedFsm::dispatch(ToEnable(servoController));
   
   TRACESC("SERVO ENABLE: %d\n", enabled);
 }
@@ -403,21 +409,33 @@ void configureMotors() {
   motorsLF[HY] = new ServoMotor(20, &jointsLF[HY], servoController, pwm);
   motorsLF[KNEE] = new ServoMotor(20, &jointsLF[KNEE], servoController, pwm);
   motorsLF[KNEE]->setSpeed(2);
+  servoController->addMotor(motorsLF[HX]);
+  servoController->addMotor(motorsLF[HY]);
+  servoController->addMotor(motorsLF[KNEE]);
 
   motorsLR[HX] = new ServoMotor(20, &jointsLR[HX], servoController, pwm);
   motorsLR[HY] = new ServoMotor(20, &jointsLR[HY], servoController, pwm);
   motorsLR[KNEE] = new ServoMotor(20, &jointsLR[KNEE], servoController, pwm);
   motorsLR[KNEE]->setSpeed(2);
+  servoController->addMotor(motorsLR[HX]);
+  servoController->addMotor(motorsLR[HY]);
+  servoController->addMotor(motorsLR[KNEE]);
 
   motorsRF[HX] = new ServoMotor(20, &jointsRF[HX], servoController, pwm);
   motorsRF[HY] = new ServoMotor(20, &jointsRF[HY], servoController, pwm);
   motorsRF[KNEE] = new ServoMotor(20, &jointsRF[KNEE], servoController, pwm);
   motorsRF[KNEE]->setSpeed(2);
+  servoController->addMotor(motorsRF[HX]);
+  servoController->addMotor(motorsRF[HY]);
+  servoController->addMotor(motorsRF[KNEE]);
 
   motorsRR[HX] = new ServoMotor(20, &jointsRR[HX], servoController, pwm);
   motorsRR[HY] = new ServoMotor(20, &jointsRR[HY], servoController, pwm);
   motorsRR[KNEE] = new ServoMotor(20, &jointsRR[KNEE], servoController, pwm);
   motorsRR[KNEE]->setSpeed(2);
+  servoController->addMotor(motorsRR[HX]);
+  servoController->addMotor(motorsRR[HY]);
+  servoController->addMotor(motorsRR[KNEE]);
 
   TRACE("%s\n", "configureMotors COMPLETE");
 }
@@ -524,7 +542,7 @@ void setup() {
   configureLegs();
   configureController();
   configureTasks();
-
+  QuadrupedFsm::start();
   TRACE("%s", "Dogbot is ready!");
 }
 

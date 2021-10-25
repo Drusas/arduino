@@ -104,3 +104,11 @@ void ServoMotor::performUpdate() {
 #endif
   }
 }
+
+void ServoMotor::setEnabled(bool state) {
+  ArdTask::setEnabled(state);
+}
+
+bool ServoMotor::getEnabled() {
+  return ArdTask::getEnabled();
+}

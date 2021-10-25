@@ -8,6 +8,7 @@ void Idle::entry() {
 }
 
 void Idle::react(ToStand const &event) {
+        
         transit<Standing>();
 }
 
