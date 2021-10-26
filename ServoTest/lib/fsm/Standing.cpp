@@ -9,13 +9,16 @@ void Standing::entry() {
 }
 
 void Standing::react(ToIdle const &event) {
-        transit<Idle>();
+    transit<Idle>();
 }
 
 void Standing::react(ToWalk const &event) {
-        transit<Walking>();
+    if (event.q != nullptr) {
+        event.q->walk();
+    }
+    transit<Walking>();
 }
 
 void Standing::react(ToDisable const &event) {
-        transit<Disabled>();
+    transit<Disabled>();
 }

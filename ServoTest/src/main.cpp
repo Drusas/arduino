@@ -1,7 +1,9 @@
 #include <Arduino.h>
+#include <iostream>
 #include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
 #include "GaitTask.h"
+#include "ILegController.h"
 #include "LegController.h"
 #include "SerialCommands.h"
 #include "ServoController.h"
@@ -12,6 +14,7 @@
 #include "Controller.h"
 #include "QuadrupedFsm.h"
 #include "Disabled.h"
+#include "Quadruped.h"
 
 #define SERVO_FREQ 50 // Analog servos run at ~50 Hz updates
 #define SERVOMIN  95 // This is the 'minimum' pulse length count (out of 4096)
@@ -45,6 +48,7 @@ ServoMotor* motorsRF[3];
 ServoMotor* motorsRR[3];
 
 LegController *legLF, *legLR, *legRF, *legRR;
+Quadruped quadruped(legRF, legLF, legRR, legLR);
 
 bool enabled = 0;
 
@@ -56,19 +60,14 @@ void cmd_unrecognized(SerialCommands* sender, const char* cmd) {
 }
 
 void cmd_servo_enable(SerialCommands* sender) {
-  enabled = !enabled;
-  // servoController->setEnabled(enabled);
-  // // taskManager->setTasksEnabled(enabled);
-  // for (uint8_t i = 0; i < 3; i++) {
-  //   motorsLF[i]->setEnabled(enabled);
-  //   motorsLR[i]->setEnabled(enabled);
-  //   motorsRF[i]->setEnabled(enabled);
-  //   motorsRR[i]->setEnabled(enabled);
-  // }
-
-  QuadrupedFsm::dispatch(ToEnable(servoController));
-  
-  TRACESC("SERVO ENABLE: %d\n", enabled);
+    enabled = !enabled;
+    if (enabled) {
+        QuadrupedFsm::dispatch(ToEnable(servoController));
+    }
+    else {
+        QuadrupedFsm::dispatch(ToDisable(servoController, &quadruped));
+    }
+    TRACESC("SERVO ENABLE: %d\n", enabled);
 }
 
 void cmd_hipx(SerialCommands* sender) {
@@ -209,11 +208,9 @@ void cmd_ik(SerialCommands* sender) {
 }
 
 void cmd_stand(SerialCommands* sender) {
-  TRACE("%s\n", "STAND");
-  legLF->moveToXYZ(25, 60, 200);
-  legLR->moveToXYZ(-25, 60, 200);
-  legRF->moveToXYZ(25, 60, 200);
-  legRR->moveToXYZ(-25, 60, 200);
+    ToStand s(&quadruped);
+    QuadrupedFsm::dispatch(s);
+    TRACE("%s\n", "STAND");
 }
 
 void cmd_lay(SerialCommands* sender) {
@@ -260,20 +257,14 @@ void cmd_walk(SerialCommands* sender) {
   TRACESC("%s%s\n", "ENABLE, ", enable_str);
   int enable = atoi(enable_str);
   if (enable < 1) {
-    cmd.horizontalVelocity[0] = 0.0;
-    gaitTask->setEnabled(false);
-    legRF->setEnabled(false);
-    legLF->setEnabled(false);
-    legRR->setEnabled(false);
-    legLR->setEnabled(false);
+    std::cout << "walk:disabled" << std::endl;
+    ToStand standEvent(&quadruped);
+    QuadrupedFsm::dispatch(standEvent);
   }
   else {
-    legRF->setEnabled(true);
-    legLF->setEnabled(true);
-    legRR->setEnabled(true);
-    legLR->setEnabled(true);
-    cmd.horizontalVelocity[0] = 100.5;
-    gaitTask->setEnabled(true);
+    std::cout << "walk:enabled" << std::endl;
+    ToWalk walkEvent(&quadruped);
+    QuadrupedFsm::dispatch(walkEvent);
   }
 }
 
@@ -542,6 +533,8 @@ void setup() {
   configureLegs();
   configureController();
   configureTasks();
+  quadruped.setLegs(legRF, legLF, legRR, legLR);
+  quadruped.setWalkParameters(gaitTask, &cmd);
   QuadrupedFsm::start();
   TRACE("%s", "Dogbot is ready!");
 }

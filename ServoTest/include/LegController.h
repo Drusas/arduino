@@ -5,6 +5,7 @@
 #include <Arduino.h>
 #include "CircularBuffer.h"
 #include "IKModel.h"
+#include "ILegController.h"
 #include "IMotor.h"
 #include "ArdTask.h"
 #include "IServoController.h"
@@ -18,7 +19,7 @@ struct LegPosition {
   uint8_t knee;
 };
 
-class LegController : public ArdTask
+class LegController : public ILegController, public ArdTask
 {
   static const size_t NUM_POSITIONS = 16;
   IServoController *servoController;
@@ -42,7 +43,7 @@ protected:
   bool isPositionBufferFull();
   void addPoint(Point p);
   void addPoint(float x, float y, float z);
-  void moveToXYZ(float x, float y, float z);
+  void moveToXYZ(float x, float y, float z) override;
   void moveToAngles(uint8_t hx, uint8_t hy, uint8_t k);
   IMotor* getJoint(uint8_t idx);
   void setHxTranslationAndOffset(float translate, float offset, int sign);
@@ -52,6 +53,8 @@ protected:
   void setHyConstraints(float min, float max);
   void setKneeConstraints(float min, float max);
   void followTrajectory(Point *buffer, uint8_t numPoints);
+  void setEnabled(bool state) override;
+  bool getEnabled() override;
 };
 
 #endif

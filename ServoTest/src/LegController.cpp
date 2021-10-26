@@ -138,3 +138,11 @@ void LegController::setKneeConstraints(float min, float max) {
 bool LegController::isPositionBufferFull() {
   return positionBuffer.isFull();
 }
+
+void LegController::setEnabled(bool state) {
+    ArdTask::setEnabled(state);
+}
+
+bool LegController::getEnabled() {
+    return ArdTask::getEnabled();
+}

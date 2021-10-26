@@ -2,27 +2,35 @@
 #define _QUADRUPED_FSM_H
 
 #include "..\hal\IServoController.h"
+#include "Quadruped.h"
 #include <tinyfsm.hpp>
 
-struct ModeEvent : tinyfsm::Event {
-  IServoController *sController;
-};
+struct ModeEvent : tinyfsm::Event {};
+
 struct ToDisable : ModeEvent {
   IServoController *sController;
-  ToDisable(IServoController *sc) : sController(sc) {
-    // sController = sc;
-  }
+  Quadruped *q;
+  ToDisable(IServoController *sc, Quadruped *quad) : sController(sc), q(quad) {}
 };
-struct ToEnable : tinyfsm::Event {
+
+struct ToEnable : ModeEvent {
   IServoController *sController;
-  ToEnable(IServoController *sc) : sController(sc) {
-    // sController = sc;
-  }
+  ToEnable(IServoController *sc) : sController(sc) {}
 };
+
 struct ToIdle : ModeEvent {};
+
 struct ToSit : ModeEvent {};
-struct ToStand : ModeEvent {};
-struct ToWalk : ModeEvent {};
+
+struct ToStand : ModeEvent {
+  Quadruped *q;
+  ToStand(Quadruped *quad) : q(quad) {}
+};
+
+struct ToWalk : ModeEvent {
+    Quadruped *q;
+    ToWalk(Quadruped *quad) : q(quad) {}
+};
 
 class QuadrupedFsm : public tinyfsm::Fsm<QuadrupedFsm> {
 
@@ -37,7 +45,7 @@ public:
   virtual void react(ToWalk const &) {};
 
   virtual void entry(void) { };  /* entry actions in some states */
-  void exit(void)  { };  /* no exit actions at all */
+  virtual void exit(void)  { };  /* no exit actions at all */
 };
 
 
