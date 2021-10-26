@@ -20,11 +20,14 @@ struct ToEnable : ModeEvent {
 
 struct ToIdle : ModeEvent {};
 
-struct ToSit : ModeEvent {};
+struct ToSit : ModeEvent {
+    Quadruped *q;
+    ToSit(Quadruped *quad) : q(quad) {}
+};
 
 struct ToStand : ModeEvent {
-  Quadruped *q;
-  ToStand(Quadruped *quad) : q(quad) {}
+    Quadruped *q;
+    ToStand(Quadruped *quad) : q(quad) {}
 };
 
 struct ToWalk : ModeEvent {

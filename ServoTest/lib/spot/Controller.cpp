@@ -49,6 +49,6 @@ void Controller::stepGait(State *state, Command *command, float newFootLocations
     for (int i = 0; i < 4; i++) {
         contact_modes[i] = contactModes[i];
     }    
-    state->ticks++;
+    state->ticks+=2;
     state->getAllFootLocations(newFootLocations);
 }

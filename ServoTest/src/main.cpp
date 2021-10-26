@@ -214,20 +214,17 @@ void cmd_stand(SerialCommands* sender) {
 }
 
 void cmd_lay(SerialCommands* sender) {
-  TRACE("%s\n", "LAY");
-  legLF->moveToXYZ(0, 60, 100);
-  legLR->moveToXYZ(-50, 60, 100);
-  legRF->moveToXYZ(0, 60, 100);
-  legRR->moveToXYZ(-50, 60, 100);
+    TRACE("%s\n", "LAY");
+    legLF->moveToXYZ(0, 60, 100);
+    legLR->moveToXYZ(-50, 60, 100);
+    legRF->moveToXYZ(0, 60, 100);
+    legRR->moveToXYZ(-50, 60, 100);
 }
 
 void cmd_sit(SerialCommands* sender) {
-  legLF->setEnabled(false);
-  TRACE("%s\n", "SIT");
-  // legLF->moveToXYZ(0, 60, 220);
-  // legLR->moveToXYZ(-50, 60, 100);
-  // legRF->moveToXYZ(0, 60, 220);
-  // legRR->moveToXYZ(-50, 60, 100);
+    ToSit s(&quadruped);
+    QuadrupedFsm::dispatch(s);
+    TRACE("%s\n", "SIT");
 }
 
 void cmd_circle(SerialCommands* sender) {

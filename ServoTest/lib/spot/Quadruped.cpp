@@ -26,6 +26,17 @@ void Quadruped::stand() {
     }
 }
 
+void Quadruped::sit() {
+    std::cout << "Quadruped::sit" << std::endl;
+    if (legLF != nullptr) {
+        std::cout << "Quadruped::sit:not null" << std::endl;
+        legRF->moveToXYZ(0, 60, 220);
+        legLF->moveToXYZ(0, 60, 220);
+        legRR->moveToXYZ(-50, 60, 150);
+        legLR->moveToXYZ(-50, 60, 150);
+    }
+}
+
 void Quadruped::setLegs(ILegController *RF, ILegController *LF, ILegController *RR, ILegController *LR) {
     legRF = RF;
     legLF = LF;

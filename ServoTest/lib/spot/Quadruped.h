@@ -15,6 +15,7 @@ public:
     Quadruped(ILegController *RF, ILegController *LF, ILegController *RR, ILegController *LR);
     void setLegs(ILegController *RF, ILegController *LF, ILegController *RR, ILegController *LR);
     void setWalkParameters(ITask *task, Command *command);
+    void sit();
     void stand();
     void walk();
     void stop();

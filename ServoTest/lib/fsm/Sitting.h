@@ -1,14 +1,14 @@
-#ifndef _IDLE_H
-#define _IDLE_H
+#ifndef _SITTING_H
+#define _SITTING_H
 
 #include "QuadrupedFsm.h"
 
-class Idle : public QuadrupedFsm {
+class Sitting : public QuadrupedFsm {
 
 public:
     void entry() override;
+    void react(ToIdle const &event) override;
     void react(ToStand const &event) override;
-    void react(ToSit const &event) override;
     void react(ToDisable const &event) override;
 };
 
