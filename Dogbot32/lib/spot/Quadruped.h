@@ -17,6 +17,7 @@ public:
     void setWalkParameters(ITask *task, Command *command);
     void sit();
     void stand();
+    void lay();
     void walk();
     void stop();
 };

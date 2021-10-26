@@ -20,6 +20,11 @@ struct ToEnable : ModeEvent {
 
 struct ToIdle : ModeEvent {};
 
+struct ToLay : ModeEvent {
+    Quadruped *q;
+    ToLay(Quadruped *quad) : q(quad) {}
+};
+
 struct ToSit : ModeEvent {
     Quadruped *q;
     ToSit(Quadruped *quad) : q(quad) {}
@@ -43,6 +48,7 @@ public:
   virtual void react(ToDisable const &event) {};
   virtual void react(ToEnable const &event) {};
   virtual void react(ToIdle const &) {};
+  virtual void react(ToLay const &) {};
   virtual void react(ToSit const &) {};
   virtual void react(ToStand const &) {};
   virtual void react(ToWalk const &) {};

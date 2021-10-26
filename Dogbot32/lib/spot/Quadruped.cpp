@@ -32,8 +32,19 @@ void Quadruped::sit() {
         std::cout << "Quadruped::sit:not null" << std::endl;
         legRF->moveToXYZ(0, 60, 220);
         legLF->moveToXYZ(0, 60, 220);
-        legRR->moveToXYZ(-50, 60, 150);
-        legLR->moveToXYZ(-50, 60, 150);
+        legRR->moveToXYZ(0, 60, 95);
+        legLR->moveToXYZ(0, 60, 95);
+    }
+}
+
+void Quadruped::lay() {
+    std::cout << "Quadruped::lay" << std::endl;
+    if (legLF != nullptr) {
+        std::cout << "Quadruped::lay:not null" << std::endl;
+        legRF->moveToXYZ(0, 60, 105);
+        legLF->moveToXYZ(0, 60, 105);
+        legRR->moveToXYZ(0, 60, 95);
+        legLR->moveToXYZ(0, 60, 95);
     }
 }
 

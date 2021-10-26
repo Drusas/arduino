@@ -214,11 +214,9 @@ void cmd_stand(SerialCommands* sender) {
 }
 
 void cmd_lay(SerialCommands* sender) {
+    ToLay l(&quadruped);
+    QuadrupedFsm::dispatch(l);
     TRACE("%s\n", "LAY");
-    legLF->moveToXYZ(0, 60, 100);
-    legLR->moveToXYZ(-50, 60, 100);
-    legRF->moveToXYZ(0, 60, 100);
-    legRR->moveToXYZ(-50, 60, 100);
 }
 
 void cmd_sit(SerialCommands* sender) {

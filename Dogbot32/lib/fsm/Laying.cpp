@@ -5,28 +5,28 @@
 #include "Standing.h"
 #include <iostream>
 
-void Sitting::entry() {
-    std::cout << "state:standing" << std::endl;
+void Laying::entry() {
+    std::cout << "state:laying" << std::endl;
 }
 
-void Sitting::react(ToIdle const &event) {
+void Laying::react(ToIdle const &event) {
     transit<Idle>();
 }
 
-void Sitting::react(ToStand const &event) {
+void Laying::react(ToStand const &event) {
     if (event.q != nullptr) {
         event.q->stand();
     }
     transit<Standing>();
 }
 
-void Sitting::react(ToLay const &event) {
+void Laying::react(ToSit const &event) {
     if (event.q != nullptr) {
-        event.q->lay();
+        event.q->sit();
     }
-    transit<Laying>();
+    transit<Sitting>();
 }
 
-void Sitting::react(ToDisable const &event) {
+void Laying::react(ToDisable const &event) {
     transit<Disabled>();
 }
