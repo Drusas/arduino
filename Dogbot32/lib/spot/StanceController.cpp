@@ -1,11 +1,17 @@
 #include "StanceController.h"
 #include <iostream>
 
+StanceController::StanceController() {}
+
 StanceController::StanceController(Configuration *config) {
     spotConfig = config;
 }
 
 StanceController::~StanceController() {}
+
+void StanceController::configure(Configuration *config) {
+    spotConfig = config;
+}
 
 void StanceController::nextFootLocation(int legIdx, State *state, Command *command, float* nextLocation) {
     // std::cout << "nextfootlocation:horz: " << command->horizontalVelocity[0] << " dt: " << spotConfig->dt << std::endl;

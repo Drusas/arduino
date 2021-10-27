@@ -1,11 +1,17 @@
 #include "GaitController.h"
 #include <iostream>
 
+GaitController::GaitController() {}
+
 GaitController::GaitController(Configuration *config) {
     spotConfig = config;
 }
 
 GaitController::~GaitController() {}
+
+void GaitController::configure(Configuration * config) {
+    spotConfig = config;
+}
 
 void GaitController::getFootContacts(long ticks, uint8_t *modes) {
     // todo: check size

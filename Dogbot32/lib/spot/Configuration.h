@@ -47,7 +47,7 @@ public:
     //                                 { 200, 200, 200, 200}};
     
     Configuration();
-    ~Configuration();
+    ~Configuration() {};
     void getDefaultStanceLocaton(int legIdx, float* location);
 };
 

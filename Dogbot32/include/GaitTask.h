@@ -23,7 +23,9 @@ protected:
     void performUpdate() override;
 
 public:
+    GaitTask();
     GaitTask(int interval, Controller *cntlr, State *ste, Command *cmd);
+    void configure(int interval, Controller *cntlr, State *ste, Command *cmd);
     void setLegs(LegController *RF, LegController *LF, LegController *RR, LegController *LR);
     void setEnabled(bool state) override;
 };

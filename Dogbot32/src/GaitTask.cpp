@@ -14,7 +14,13 @@ void copyLocations(float src[][4], float dest[][4]) {
     }
 }
 
+GaitTask::GaitTask() {}
+
 GaitTask::GaitTask(int interval, Controller *cntlr, State *ste, Command *cmd) {
+    configure(interval, cntlr, ste, cmd);
+}
+
+void GaitTask::configure(int interval, Controller *cntlr, State *ste, Command *cmd) {
     setEnabled(false);
     updateInterval = interval;
     controller = cntlr;

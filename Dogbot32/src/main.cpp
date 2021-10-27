@@ -20,23 +20,23 @@
 #define SERVOMIN  95 // This is the 'minimum' pulse length count (out of 4096)
 #define SERVOMAX  455 // This is the 'maximum' pulse length count (out of 4096)
 
-FSM_INITIAL_STATE(QuadrupedFsm, Disabled);
-
-Controller ctlr;
-GaitTask *gaitTask;
-State state;
-Command cmd;
-
-Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
-ServoController sController = ServoController();
-IServoController *servoController = &sController;
-TaskManager taskManager;
-
 enum JointIdx {
   HX = 0,
   HY = 1,
   KNEE = 2,
 };
+
+Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
+
+FSM_INITIAL_STATE(QuadrupedFsm, Disabled);
+
+Configuration spotConfg;
+Controller ctlr;
+GaitTask gaitTask;
+State state;
+Command cmd;
+ServoController servoController; 
+TaskManager taskManager;
 
 Joint jointsLF[3];
 Joint jointsLR[3];
@@ -63,10 +63,10 @@ void cmd_unrecognized(SerialCommands* sender, const char* cmd) {
 void cmd_servo_enable(SerialCommands* sender) {
     enabled = !enabled;
     if (enabled) {
-        QuadrupedFsm::dispatch(ToEnable(servoController));
+        QuadrupedFsm::dispatch(ToEnable(&servoController));
     }
     else {
-        QuadrupedFsm::dispatch(ToDisable(servoController, &quadruped));
+        QuadrupedFsm::dispatch(ToDisable(&servoController, &quadruped));
     }
     TRACESC("SERVO ENABLE: %d\n", enabled);
 }
@@ -390,37 +390,37 @@ void configureJoints()
 }
 
 void configureMotors() {
-    motorsLF[HX].configure(20, &jointsLF[HX], servoController, pwm);
-    motorsLF[HY].configure(20, &jointsLF[HY], servoController, pwm);
-    motorsLF[KNEE].configure(20, &jointsLF[KNEE], servoController, pwm);
+    motorsLF[HX].configure(20, &jointsLF[HX], &servoController, pwm);
+    motorsLF[HY].configure(20, &jointsLF[HY], &servoController, pwm);
+    motorsLF[KNEE].configure(20, &jointsLF[KNEE], &servoController, pwm);
     motorsLF[KNEE].setSpeed(2);
-    servoController->addMotor(&motorsLF[HX]);
-    servoController->addMotor(&motorsLF[HY]);
-    servoController->addMotor(&motorsLF[KNEE]);
+    servoController.addMotor(&motorsLF[HX]);
+    servoController.addMotor(&motorsLF[HY]);
+    servoController.addMotor(&motorsLF[KNEE]);
 
-    motorsLR[HX].configure(20, &jointsLR[HX], servoController, pwm);
-    motorsLR[HY].configure(20, &jointsLR[HY], servoController, pwm);
-    motorsLR[KNEE].configure(20, &jointsLR[KNEE], servoController, pwm);
+    motorsLR[HX].configure(20, &jointsLR[HX], &servoController, pwm);
+    motorsLR[HY].configure(20, &jointsLR[HY], &servoController, pwm);
+    motorsLR[KNEE].configure(20, &jointsLR[KNEE], &servoController, pwm);
     motorsLR[KNEE].setSpeed(2);
-    servoController->addMotor(&motorsLR[HX]);
-    servoController->addMotor(&motorsLR[HY]);
-    servoController->addMotor(&motorsLR[KNEE]);
+    servoController.addMotor(&motorsLR[HX]);
+    servoController.addMotor(&motorsLR[HY]);
+    servoController.addMotor(&motorsLR[KNEE]);
 
-    motorsRF[HX].configure(20, &jointsRF[HX], servoController, pwm);
-    motorsRF[HY].configure(20, &jointsRF[HY], servoController, pwm);
-    motorsRF[KNEE].configure(20, &jointsRF[KNEE], servoController, pwm);
+    motorsRF[HX].configure(20, &jointsRF[HX], &servoController, pwm);
+    motorsRF[HY].configure(20, &jointsRF[HY], &servoController, pwm);
+    motorsRF[KNEE].configure(20, &jointsRF[KNEE], &servoController, pwm);
     motorsRF[KNEE].setSpeed(2);
-    servoController->addMotor(&motorsRF[HX]);
-    servoController->addMotor(&motorsRF[HY]);
-    servoController->addMotor(&motorsRF[KNEE]);
+    servoController.addMotor(&motorsRF[HX]);
+    servoController.addMotor(&motorsRF[HY]);
+    servoController.addMotor(&motorsRF[KNEE]);
 
-    motorsRR[HX].configure(20, &jointsRR[HX], servoController, pwm);
-    motorsRR[HY].configure(20, &jointsRR[HY], servoController, pwm);
-    motorsRR[KNEE].configure(20, &jointsRR[KNEE], servoController, pwm);
+    motorsRR[HX].configure(20, &jointsRR[HX], &servoController, pwm);
+    motorsRR[HY].configure(20, &jointsRR[HY], &servoController, pwm);
+    motorsRR[KNEE].configure(20, &jointsRR[KNEE], &servoController, pwm);
     motorsRR[KNEE].setSpeed(2);
-    servoController->addMotor(&motorsRR[HX]);
-    servoController->addMotor(&motorsRR[HY]);
-    servoController->addMotor(&motorsRR[KNEE]);
+    servoController.addMotor(&motorsRR[HX]);
+    servoController.addMotor(&motorsRR[HY]);
+    servoController.addMotor(&motorsRR[KNEE]);
 
     TRACE("%s\n", "configureMotors COMPLETE");
 }
@@ -432,23 +432,22 @@ void configureTasks() {
         taskManager.addTask(&motorsRF[i]);
         taskManager.addTask(&motorsRR[i]);
     }
-
     taskManager.addTask(&legRF);
     taskManager.addTask(&legLF);
     taskManager.addTask(&legRR);
     taskManager.addTask(&legLR);
-
-    taskManager.addTask(gaitTask);
+    taskManager.addTask(&gaitTask);
 }
 
 void configureController() {
+    ctlr.configure(&spotConfg);
     state.setAllFootLocations(ctlr.spotConfig->defaultStance);
-    gaitTask = new GaitTask(20, &ctlr, &state, &cmd);
-    gaitTask->setLegs(&legRF, &legLF, &legRR, &legLR);
+    gaitTask.configure(20, &ctlr, &state, &cmd);
+    gaitTask.setLegs(&legRF, &legLF, &legRR, &legLR);
 }
 
 void configureLegs() {
-    legRF.configure(20, 108, 132, 15, 60, &motorsRF[HX], &motorsRF[HY], &motorsRF[KNEE], servoController);
+    legRF.configure(20, 108, 132, 15, 60, &motorsRF[HX], &motorsRF[HY], &motorsRF[KNEE], &servoController);
     legRF.setHxTranslationAndOffset(radians(jointsRF[HX].translate), radians(jointsRF[HX].offset), jointsRF[HX].sign);
     legRF.setHyTranslationAndOffset(radians(jointsRF[HY].translate), radians(jointsRF[HY].offset), jointsRF[HY].sign);
     legRF.setKneeTranslationAndOffset(radians(jointsRF[KNEE].translate), radians(jointsRF[KNEE].offset), jointsRF[KNEE].sign);
@@ -457,7 +456,7 @@ void configureLegs() {
     legRF.setKneeConstraints(radians(jointsRF[KNEE].minAngle), radians(jointsRF[KNEE].maxAngle));
     legRF.setId("RFLeg");
   
-    legLF.configure(20, 108, 132, 15, 60, &motorsLF[HX], &motorsLF[HY], &motorsLF[KNEE], servoController);
+    legLF.configure(20, 108, 132, 15, 60, &motorsLF[HX], &motorsLF[HY], &motorsLF[KNEE], &servoController);
     legLF.setHxTranslationAndOffset(radians(jointsLF[HX].translate), radians(jointsLF[HX].offset), jointsLF[HX].sign);
     legLF.setHyTranslationAndOffset(radians(jointsLF[HY].translate), radians(jointsLF[HY].offset), jointsLF[HY].sign);
     legLF.setKneeTranslationAndOffset(radians(jointsLF[KNEE].translate), radians(jointsLF[KNEE].offset), jointsLF[KNEE].sign);
@@ -466,7 +465,7 @@ void configureLegs() {
     legLF.setKneeConstraints(radians(jointsLF[KNEE].minAngle), radians(jointsLF[KNEE].maxAngle));
     legLF.setId("LFLeg");
 
-    legRR.configure(20, 108, 132, 15, 60, &motorsRR[HX], &motorsRR[HY], &motorsRR[KNEE], servoController);
+    legRR.configure(20, 108, 132, 15, 60, &motorsRR[HX], &motorsRR[HY], &motorsRR[KNEE], &servoController);
     legRR.setHxTranslationAndOffset(radians(jointsRR[HX].translate), radians(jointsRR[HX].offset), jointsRR[HX].sign);
     legRR.setHyTranslationAndOffset(radians(jointsRR[HY].translate), radians(jointsRR[HY].offset), jointsRR[HY].sign);
     legRR.setKneeTranslationAndOffset(radians(jointsRR[KNEE].translate), radians(jointsRR[KNEE].offset), jointsRR[KNEE].sign);
@@ -475,7 +474,7 @@ void configureLegs() {
     legRR.setKneeConstraints(radians(jointsRR[KNEE].minAngle), radians(jointsRR[KNEE].maxAngle));
     legRR.setId("RRLeg");
 
-    legLR.configure(20, 108, 132, 15, 60, &motorsLR[HX], &motorsLR[HY], &motorsLR[KNEE], servoController);
+    legLR.configure(20, 108, 132, 15, 60, &motorsLR[HX], &motorsLR[HY], &motorsLR[KNEE], &servoController);
     legLR.setHxTranslationAndOffset(radians(jointsLR[HX].translate), radians(jointsLR[HX].offset), jointsLR[HX].sign);
     legLR.setHyTranslationAndOffset(radians(jointsLR[HY].translate), radians(jointsLR[HY].offset), jointsLR[HY].sign);
     legLR.setKneeTranslationAndOffset(radians(jointsLR[KNEE].translate), radians(jointsLR[KNEE].offset), jointsLR[KNEE].sign);
@@ -525,7 +524,7 @@ void setup() {
     configureController();
     configureTasks();
     quadruped.setLegs(&legRF, &legLF, &legRR, &legLR);
-    quadruped.setWalkParameters(gaitTask, &cmd);
+    quadruped.setWalkParameters(&gaitTask, &cmd);
     QuadrupedFsm::start();
     TRACE("%s", "Dogbot is ready!");
 }

@@ -11,9 +11,11 @@ class StanceController {
     Configuration *spotConfig;
 
 public:
+    StanceController();
     StanceController(Configuration *config);
     ~StanceController();
     
+    void configure(Configuration *config);
     void nextFootLocation(int legIdx, State *state, Command *command, float* nextLocation);
     void getPositionDelta(int legIdx, State *state, Command *command, float *delta);
 };

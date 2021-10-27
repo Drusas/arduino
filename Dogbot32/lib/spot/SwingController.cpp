@@ -1,11 +1,17 @@
 #include "SwingController.h"
 #include <iostream>
 
+SwingController::SwingController() {}
+
 SwingController::SwingController(Configuration *config) {
     spotConfig = config;
 }
 
 SwingController::~SwingController() {}
+
+void SwingController::configure(Configuration *config) {
+    spotConfig = config;
+}
 
 void SwingController::nextFootLocation(float swingProportion, int legIdx, State *state, Command *command, float *newLocation) {
     // todo: assert swing_prop >= 0 and swing_prop <= 1
