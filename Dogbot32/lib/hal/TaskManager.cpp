@@ -1,19 +1,14 @@
 #include "stdlib.h"
 #include "TaskManager.h"
-// #include "Utils.h"
 
 //#define DEBUG_TASKMANAGER
 
-TaskManager::TaskManager(uint8_t numTasks) :
-  numManagedTasks(numTasks),
+TaskManager::TaskManager() :
+  numManagedTasks(MAX_NUM_TASKS),
   managedTaskIdx(0) {
-  taskList = (ITask**)malloc(sizeof(ITask*) * numManagedTasks);
 }
 
-TaskManager::~TaskManager() {
-  free(taskList);
-  taskList = 0;
-}
+TaskManager::~TaskManager() {}
 
 void TaskManager::addTask(ITask* taskToAdd) {
   if (taskToAdd != 0) {

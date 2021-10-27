@@ -1,11 +1,10 @@
 #include <Arduino.h>
 #include "ServoController.h"
 
-ServoController::ServoController(uint8_t maxNumberMotorsToManage) : 
+ServoController::ServoController() : 
   enabled(false),
   motorManagementIdx(0) 
 {
-    motors = (IMotor**)malloc(sizeof(IMotor*)*maxNumberMotorsToManage);
 }
 
 void ServoController::setEnabled(bool state) {
@@ -20,7 +19,7 @@ bool ServoController::getEnabled() {
 }
 
 void ServoController::addMotor(IMotor *motor) {
-  if (motorManagementIdx < numMotors) {
+  if (motorManagementIdx < MAX_NUM_MOTORS) {
     motors[motorManagementIdx++] = motor;
   }
 }

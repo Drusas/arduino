@@ -3,19 +3,24 @@
 
 // #define DEBUG_SERVOMOTOR 1
 
-ServoMotor::ServoMotor(int interval, Joint *servoJoint, IServoController *controller, Adafruit_PWMServoDriver pwmDriver)
-{
-  setEnabled(false);
-  servoController = controller;
-  driver = pwmDriver;
-  updateInterval = interval;
-  lastUpdate = 0;
-  joint = servoJoint;
-  cmdPos = joint->cmdAngle;
-  actPos = cmdPos; 
-  homePos = joint->homeAngle;
-  homed = false;
-  increment = 5;
+ServoMotor::ServoMotor() {}
+
+ServoMotor::ServoMotor(int interval, Joint *servoJoint, IServoController *controller, Adafruit_PWMServoDriver pwmDriver) {
+    configure(interval, servoJoint, controller, pwmDriver);
+}
+
+void ServoMotor::configure(int interval, Joint *servoJoint, IServoController *controller, Adafruit_PWMServoDriver pwmDriver) {
+    setEnabled(false);
+    servoController = controller;
+    driver = pwmDriver;
+    updateInterval = interval;
+    lastUpdate = 0;
+    joint = servoJoint;
+    cmdPos = joint->cmdAngle;
+    actPos = cmdPos; 
+    homePos = joint->homeAngle;
+    homed = false;
+    increment = 5;
 }
 
 void ServoMotor::incrementActualPosition() {

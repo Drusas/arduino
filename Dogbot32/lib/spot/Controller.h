@@ -10,10 +10,10 @@
 #include "State.h"
 
 class Controller {
-
     
     uint8_t contactModes[4];
-    State state;GaitController *gaitController;
+    State state;
+    GaitController *gaitController;
     SwingController *swingController;
     StanceController *stanceController;
     

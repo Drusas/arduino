@@ -1,16 +1,23 @@
 #include <Arduino.h>
 #include "LegController.h"
 
+LegController::LegController() {}
+
 LegController::LegController(int interval, float femurLength, float tibiaLength, float zOffset, float yOffset, 
-                             IMotor *capsule, IMotor *shoulder, IMotor *knee, IServoController *controller) {
-  setEnabled(false);
-  servoController = controller;
-  updateInterval = interval;
-  hipxMotor = capsule;
-  hipyMotor = shoulder;
-  kneeMotor = knee;
-  posIdx = bufferIdx = 0;
-  ikModel = LegIKModel(femurLength, tibiaLength, zOffset, yOffset);
+                             IMotor *hipx, IMotor *hipy, IMotor *knee, IServoController *controller) {
+    configure(interval, femurLength, tibiaLength, zOffset, yOffset, hipx, hipy, knee, controller);
+}
+
+void LegController::configure(int interval, float femurLength, float tibiaLength, float zOffset, float yOffset, 
+                              IMotor *hipx, IMotor *hipy, IMotor *knee, IServoController *controller) {
+    setEnabled(false);
+    servoController = controller;
+    updateInterval = interval;
+    hipxMotor = hipx;
+    hipyMotor = hipy;
+    kneeMotor = knee;
+    posIdx = bufferIdx = 0;
+    ikModel = LegIKModel(femurLength, tibiaLength, zOffset, yOffset);
 }
 
 void LegController::addPoint(float x, float y, float z) {

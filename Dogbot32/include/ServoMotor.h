@@ -48,18 +48,20 @@ public:
   Joint *joint;
   void performUpdate() override;
 
-public: 
-  ServoMotor(int interval, Joint *servoJoint, IServoController *controller, Adafruit_PWMServoDriver pwmDriver);
-  void setPosition(int angle);
-  bool atPosition();
-  int cmdPosition();
-  int actPosition();
-  void home();
-  bool getHomed();
-  void setSpeed(uint8_t speed); 
-  int getServoIndex() override;
-  void setEnabled(bool state) override;
-  bool getEnabled() override;
+public:
+    ServoMotor();
+    ServoMotor(int interval, Joint *servoJoint, IServoController *controller, Adafruit_PWMServoDriver pwmDriver);
+    void configure(int interval, Joint *servoJoint, IServoController *controller, Adafruit_PWMServoDriver pwmDriver);
+    void setPosition(int angle);
+    bool atPosition();
+    int cmdPosition();
+    int actPosition();
+    void home();
+    bool getHomed();
+    void setSpeed(uint8_t speed); 
+    int getServoIndex() override;
+    void setEnabled(bool state) override;
+    bool getEnabled() override;
 };
 
 #endif

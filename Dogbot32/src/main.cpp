@@ -28,8 +28,9 @@ State state;
 Command cmd;
 
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
-IServoController* servoController;
-TaskManager* taskManager;
+ServoController sController = ServoController();
+IServoController *servoController = &sController;
+TaskManager taskManager;
 
 enum JointIdx {
   HX = 0,
@@ -42,13 +43,13 @@ Joint jointsLR[3];
 Joint jointsRF[3];
 Joint jointsRR[3];
 
-ServoMotor* motorsLF[3];
-ServoMotor* motorsLR[3];
-ServoMotor* motorsRF[3];
-ServoMotor* motorsRR[3];
+ServoMotor motorsLF[3];
+ServoMotor motorsLR[3];
+ServoMotor motorsRF[3];
+ServoMotor motorsRR[3];
 
-LegController *legLF, *legLR, *legRF, *legRR;
-Quadruped quadruped(legRF, legLF, legRR, legLR);
+LegController legRF, legLF, legRR, legLR;
+Quadruped quadruped(&legRF, &legLF, &legRR, &legLR);
 
 bool enabled = 0;
 
@@ -78,7 +79,7 @@ void cmd_hipx(SerialCommands* sender) {
 	}
 
 	uint8_t angle = atoi(angle_str);
-  motorsLF[HX]->setPosition(angle);
+    motorsLF[HX].setPosition(angle);
 }
 
 void cmd_hipy(SerialCommands* sender) {
@@ -89,7 +90,7 @@ void cmd_hipy(SerialCommands* sender) {
 	}
   
 	uint8_t angle = atoi(angle_str);
-  motorsLF[HY]->setPosition(angle);
+    motorsLF[HY].setPosition(angle);
 }
 
 void cmd_knee(SerialCommands* sender) {
@@ -100,7 +101,7 @@ void cmd_knee(SerialCommands* sender) {
 	}
   
 	uint8_t angle = atoi(angle_str);
-  motorsLF[KNEE]->setPosition(angle);
+    motorsLF[KNEE].setPosition(angle);
 }
 
 void cmd_leg(SerialCommands* sender) {
@@ -135,16 +136,16 @@ void cmd_leg(SerialCommands* sender) {
   switch (idx)
   {
   case 0:
-    legLF->moveToAngles(angleHx, angleHy, angleK);
+    legLF.moveToAngles(angleHx, angleHy, angleK);
     break;
   case 1:
-    legLR->moveToAngles(angleHx, angleHy, angleK);
+    legLR.moveToAngles(angleHx, angleHy, angleK);
     break;
   case 2:
-    legRF->moveToAngles(angleHx, angleHy, angleK);
+    legRF.moveToAngles(angleHx, angleHy, angleK);
     break;
   case 3:
-    legRR->moveToAngles(angleHx, angleHy, angleK);
+    legRR.moveToAngles(angleHx, angleHy, angleK);
     break;
   default:
     TRACESC("%s, %d", "Invalid index", idx);
@@ -189,16 +190,16 @@ void cmd_ik(SerialCommands* sender) {
   switch (idx)
   {
   case 0:
-    legLF->moveToXYZ(x, y, z);
+    legLF.moveToXYZ(x, y, z);
     break;
   case 1:
-    legLR->moveToXYZ(x, y, z);
+    legLR.moveToXYZ(x, y, z);
     break;
   case 2:
-    legRF->moveToXYZ(x, y, z);
+    legRF.moveToXYZ(x, y, z);
     break;
   case 3:
-    legRR->moveToXYZ(x, y, z);
+    legRR.moveToXYZ(x, y, z);
     break;
   default:
     TRACESC("%s, %d", "Invalid index", idx);
@@ -226,20 +227,20 @@ void cmd_sit(SerialCommands* sender) {
 }
 
 void cmd_circle(SerialCommands* sender) {
-  TRACE("%s\n", "CIRC");
-  int numPoints = 4;
-  Point *buffer;
-  //buffer = TrajectoryGenerator::GenerateCircle(25, 180, 50, numPoints);
-  buffer = TrajectoryGenerator::GenerateRectangle(25, 180, 50, 150, numPoints);
-  for (int i = 0; i < numPoints; i++) {
-      TRACE("%d: %0.2f, %0.2f, %0.2f\n", i, buffer[i].x, buffer[i].y, buffer[i].z);
-      legLF->addPoint(buffer[i]);
-  }
+    TRACE("%s\n", "CIRC");
+    int numPoints = 4;
+    Point *buffer;
+    //buffer = TrajectoryGenerator::GenerateCircle(25, 180, 50, numPoints);
+    buffer = TrajectoryGenerator::GenerateRectangle(25, 180, 50, 150, numPoints);
+    for (int i = 0; i < numPoints; i++) {
+        TRACE("%d: %0.2f, %0.2f, %0.2f\n", i, buffer[i].x, buffer[i].y, buffer[i].z);
+        legLF.addPoint(buffer[i]);
+    }
 
-  legLF->setEnabled(true);
-  // legLF->followTrajectory(buffer, numPoints);
+    legLF.setEnabled(true);
+    // legLF.followTrajectory(buffer, numPoints);
 
-  free (buffer);
+    free (buffer);
 }
 
 void cmd_walk(SerialCommands* sender) {
@@ -389,104 +390,99 @@ void configureJoints()
 }
 
 void configureMotors() {
-  servoController = new ServoController(1);
+    motorsLF[HX].configure(20, &jointsLF[HX], servoController, pwm);
+    motorsLF[HY].configure(20, &jointsLF[HY], servoController, pwm);
+    motorsLF[KNEE].configure(20, &jointsLF[KNEE], servoController, pwm);
+    motorsLF[KNEE].setSpeed(2);
+    servoController->addMotor(&motorsLF[HX]);
+    servoController->addMotor(&motorsLF[HY]);
+    servoController->addMotor(&motorsLF[KNEE]);
 
-  motorsLF[HX] = new ServoMotor(20, &jointsLF[HX], servoController, pwm);
-  motorsLF[HY] = new ServoMotor(20, &jointsLF[HY], servoController, pwm);
-  motorsLF[KNEE] = new ServoMotor(20, &jointsLF[KNEE], servoController, pwm);
-  motorsLF[KNEE]->setSpeed(2);
-  servoController->addMotor(motorsLF[HX]);
-  servoController->addMotor(motorsLF[HY]);
-  servoController->addMotor(motorsLF[KNEE]);
+    motorsLR[HX].configure(20, &jointsLR[HX], servoController, pwm);
+    motorsLR[HY].configure(20, &jointsLR[HY], servoController, pwm);
+    motorsLR[KNEE].configure(20, &jointsLR[KNEE], servoController, pwm);
+    motorsLR[KNEE].setSpeed(2);
+    servoController->addMotor(&motorsLR[HX]);
+    servoController->addMotor(&motorsLR[HY]);
+    servoController->addMotor(&motorsLR[KNEE]);
 
-  motorsLR[HX] = new ServoMotor(20, &jointsLR[HX], servoController, pwm);
-  motorsLR[HY] = new ServoMotor(20, &jointsLR[HY], servoController, pwm);
-  motorsLR[KNEE] = new ServoMotor(20, &jointsLR[KNEE], servoController, pwm);
-  motorsLR[KNEE]->setSpeed(2);
-  servoController->addMotor(motorsLR[HX]);
-  servoController->addMotor(motorsLR[HY]);
-  servoController->addMotor(motorsLR[KNEE]);
+    motorsRF[HX].configure(20, &jointsRF[HX], servoController, pwm);
+    motorsRF[HY].configure(20, &jointsRF[HY], servoController, pwm);
+    motorsRF[KNEE].configure(20, &jointsRF[KNEE], servoController, pwm);
+    motorsRF[KNEE].setSpeed(2);
+    servoController->addMotor(&motorsRF[HX]);
+    servoController->addMotor(&motorsRF[HY]);
+    servoController->addMotor(&motorsRF[KNEE]);
 
-  motorsRF[HX] = new ServoMotor(20, &jointsRF[HX], servoController, pwm);
-  motorsRF[HY] = new ServoMotor(20, &jointsRF[HY], servoController, pwm);
-  motorsRF[KNEE] = new ServoMotor(20, &jointsRF[KNEE], servoController, pwm);
-  motorsRF[KNEE]->setSpeed(2);
-  servoController->addMotor(motorsRF[HX]);
-  servoController->addMotor(motorsRF[HY]);
-  servoController->addMotor(motorsRF[KNEE]);
+    motorsRR[HX].configure(20, &jointsRR[HX], servoController, pwm);
+    motorsRR[HY].configure(20, &jointsRR[HY], servoController, pwm);
+    motorsRR[KNEE].configure(20, &jointsRR[KNEE], servoController, pwm);
+    motorsRR[KNEE].setSpeed(2);
+    servoController->addMotor(&motorsRR[HX]);
+    servoController->addMotor(&motorsRR[HY]);
+    servoController->addMotor(&motorsRR[KNEE]);
 
-  motorsRR[HX] = new ServoMotor(20, &jointsRR[HX], servoController, pwm);
-  motorsRR[HY] = new ServoMotor(20, &jointsRR[HY], servoController, pwm);
-  motorsRR[KNEE] = new ServoMotor(20, &jointsRR[KNEE], servoController, pwm);
-  motorsRR[KNEE]->setSpeed(2);
-  servoController->addMotor(motorsRR[HX]);
-  servoController->addMotor(motorsRR[HY]);
-  servoController->addMotor(motorsRR[KNEE]);
-
-  TRACE("%s\n", "configureMotors COMPLETE");
+    TRACE("%s\n", "configureMotors COMPLETE");
 }
 
 void configureTasks() {
-  taskManager = new TaskManager(32);
-  for (uint8_t i = 0; i < 3; i++) {
-    taskManager->addTask(motorsLF[i]);
-    taskManager->addTask(motorsLR[i]);
-    taskManager->addTask(motorsRF[i]);
-    taskManager->addTask(motorsRR[i]);
-  }
+    for (uint8_t i = 0; i < 3; i++) {
+        taskManager.addTask(&motorsLF[i]);
+        taskManager.addTask(&motorsLR[i]);
+        taskManager.addTask(&motorsRF[i]);
+        taskManager.addTask(&motorsRR[i]);
+    }
 
-  // legRF->setEnabled(false);
-  taskManager->addTask(legRF);
-  taskManager->addTask(legLF);
-  taskManager->addTask(legRR);
-  taskManager->addTask(legLR);
+    taskManager.addTask(&legRF);
+    taskManager.addTask(&legLF);
+    taskManager.addTask(&legRR);
+    taskManager.addTask(&legLR);
 
-  taskManager->addTask(gaitTask);
-  
+    taskManager.addTask(gaitTask);
 }
 
 void configureController() {
-  state.setAllFootLocations(ctlr.spotConfig->defaultStance);
-  gaitTask = new GaitTask(20, &ctlr, &state, &cmd);
-  gaitTask->setLegs(legRF, legLF, legRR, legLR);
+    state.setAllFootLocations(ctlr.spotConfig->defaultStance);
+    gaitTask = new GaitTask(20, &ctlr, &state, &cmd);
+    gaitTask->setLegs(&legRF, &legLF, &legRR, &legLR);
 }
 
 void configureLegs() {
-  legRF = new LegController(20, 108, 132, 15, 60, motorsRF[HX], motorsRF[HY], motorsRF[KNEE], servoController);
-  legRF->setHxTranslationAndOffset(radians(jointsRF[HX].translate), radians(jointsRF[HX].offset), jointsRF[HX].sign);
-  legRF->setHyTranslationAndOffset(radians(jointsRF[HY].translate), radians(jointsRF[HY].offset), jointsRF[HY].sign);
-  legRF->setKneeTranslationAndOffset(radians(jointsRF[KNEE].translate), radians(jointsRF[KNEE].offset), jointsRF[KNEE].sign);
-  legRF->setHxConstraints(radians(jointsRF[HX].minAngle), radians(jointsRF[HX].maxAngle));
-  legRF->setHyConstraints(radians(jointsRF[HY].minAngle), radians(jointsRF[HY].maxAngle));
-  legRF->setKneeConstraints(radians(jointsRF[KNEE].minAngle), radians(jointsRF[KNEE].maxAngle));
-  legRF->setId("RFLeg");
+    legRF.configure(20, 108, 132, 15, 60, &motorsRF[HX], &motorsRF[HY], &motorsRF[KNEE], servoController);
+    legRF.setHxTranslationAndOffset(radians(jointsRF[HX].translate), radians(jointsRF[HX].offset), jointsRF[HX].sign);
+    legRF.setHyTranslationAndOffset(radians(jointsRF[HY].translate), radians(jointsRF[HY].offset), jointsRF[HY].sign);
+    legRF.setKneeTranslationAndOffset(radians(jointsRF[KNEE].translate), radians(jointsRF[KNEE].offset), jointsRF[KNEE].sign);
+    legRF.setHxConstraints(radians(jointsRF[HX].minAngle), radians(jointsRF[HX].maxAngle));
+    legRF.setHyConstraints(radians(jointsRF[HY].minAngle), radians(jointsRF[HY].maxAngle));
+    legRF.setKneeConstraints(radians(jointsRF[KNEE].minAngle), radians(jointsRF[KNEE].maxAngle));
+    legRF.setId("RFLeg");
   
-  legLF = new LegController(20, 108, 132, 15, 60, motorsLF[HX], motorsLF[HY], motorsLF[KNEE], servoController);
-  legLF->setHxTranslationAndOffset(radians(jointsLF[HX].translate), radians(jointsLF[HX].offset), jointsLF[HX].sign);
-  legLF->setHyTranslationAndOffset(radians(jointsLF[HY].translate), radians(jointsLF[HY].offset), jointsLF[HY].sign);
-  legLF->setKneeTranslationAndOffset(radians(jointsLF[KNEE].translate), radians(jointsLF[KNEE].offset), jointsLF[KNEE].sign);
-  legLF->setHxConstraints(radians(jointsLF[HX].minAngle), radians(jointsLF[HX].maxAngle));
-  legLF->setHyConstraints(radians(jointsLF[HY].minAngle), radians(jointsLF[HY].maxAngle));
-  legLF->setKneeConstraints(radians(jointsLF[KNEE].minAngle), radians(jointsLF[KNEE].maxAngle));
-  legLF->setId("LFLeg");
+    legLF.configure(20, 108, 132, 15, 60, &motorsLF[HX], &motorsLF[HY], &motorsLF[KNEE], servoController);
+    legLF.setHxTranslationAndOffset(radians(jointsLF[HX].translate), radians(jointsLF[HX].offset), jointsLF[HX].sign);
+    legLF.setHyTranslationAndOffset(radians(jointsLF[HY].translate), radians(jointsLF[HY].offset), jointsLF[HY].sign);
+    legLF.setKneeTranslationAndOffset(radians(jointsLF[KNEE].translate), radians(jointsLF[KNEE].offset), jointsLF[KNEE].sign);
+    legLF.setHxConstraints(radians(jointsLF[HX].minAngle), radians(jointsLF[HX].maxAngle));
+    legLF.setHyConstraints(radians(jointsLF[HY].minAngle), radians(jointsLF[HY].maxAngle));
+    legLF.setKneeConstraints(radians(jointsLF[KNEE].minAngle), radians(jointsLF[KNEE].maxAngle));
+    legLF.setId("LFLeg");
 
-  legRR = new LegController(20, 108, 132, 15, 60, motorsRR[HX], motorsRR[HY], motorsRR[KNEE], servoController);
-  legRR->setHxTranslationAndOffset(radians(jointsRR[HX].translate), radians(jointsRR[HX].offset), jointsRR[HX].sign);
-  legRR->setHyTranslationAndOffset(radians(jointsRR[HY].translate), radians(jointsRR[HY].offset), jointsRR[HY].sign);
-  legRR->setKneeTranslationAndOffset(radians(jointsRR[KNEE].translate), radians(jointsRR[KNEE].offset), jointsRR[KNEE].sign);
-  legRR->setHxConstraints(radians(jointsRR[HX].minAngle), radians(jointsRR[HX].maxAngle));
-  legRR->setHyConstraints(radians(jointsRR[HY].minAngle), radians(jointsRR[HY].maxAngle));
-  legRR->setKneeConstraints(radians(jointsRR[KNEE].minAngle), radians(jointsRR[KNEE].maxAngle));
-  legRR->setId("RRLeg");
+    legRR.configure(20, 108, 132, 15, 60, &motorsRR[HX], &motorsRR[HY], &motorsRR[KNEE], servoController);
+    legRR.setHxTranslationAndOffset(radians(jointsRR[HX].translate), radians(jointsRR[HX].offset), jointsRR[HX].sign);
+    legRR.setHyTranslationAndOffset(radians(jointsRR[HY].translate), radians(jointsRR[HY].offset), jointsRR[HY].sign);
+    legRR.setKneeTranslationAndOffset(radians(jointsRR[KNEE].translate), radians(jointsRR[KNEE].offset), jointsRR[KNEE].sign);
+    legRR.setHxConstraints(radians(jointsRR[HX].minAngle), radians(jointsRR[HX].maxAngle));
+    legRR.setHyConstraints(radians(jointsRR[HY].minAngle), radians(jointsRR[HY].maxAngle));
+    legRR.setKneeConstraints(radians(jointsRR[KNEE].minAngle), radians(jointsRR[KNEE].maxAngle));
+    legRR.setId("RRLeg");
 
-  legLR = new LegController(20, 108, 132, 15, 60, motorsLR[HX], motorsLR[HY], motorsLR[KNEE], servoController);
-  legLR->setHxTranslationAndOffset(radians(jointsLR[HX].translate), radians(jointsLR[HX].offset), jointsLR[HX].sign);
-  legLR->setHyTranslationAndOffset(radians(jointsLR[HY].translate), radians(jointsLR[HY].offset), jointsLR[HY].sign);
-  legLR->setKneeTranslationAndOffset(radians(jointsLR[KNEE].translate), radians(jointsLR[KNEE].offset), jointsLR[KNEE].sign);
-  legLR->setHxConstraints(radians(jointsLR[HX].minAngle), radians(jointsLR[HX].maxAngle));
-  legLR->setHyConstraints(radians(jointsLR[HY].minAngle), radians(jointsLR[HY].maxAngle));
-  legLR->setKneeConstraints(radians(jointsLR[KNEE].minAngle), radians(jointsLR[KNEE].maxAngle));
-  legLR->setId("LRLeg");
+    legLR.configure(20, 108, 132, 15, 60, &motorsLR[HX], &motorsLR[HY], &motorsLR[KNEE], servoController);
+    legLR.setHxTranslationAndOffset(radians(jointsLR[HX].translate), radians(jointsLR[HX].offset), jointsLR[HX].sign);
+    legLR.setHyTranslationAndOffset(radians(jointsLR[HY].translate), radians(jointsLR[HY].offset), jointsLR[HY].sign);
+    legLR.setKneeTranslationAndOffset(radians(jointsLR[KNEE].translate), radians(jointsLR[KNEE].offset), jointsLR[KNEE].sign);
+    legLR.setHxConstraints(radians(jointsLR[HX].minAngle), radians(jointsLR[HX].maxAngle));
+    legLR.setHyConstraints(radians(jointsLR[HY].minAngle), radians(jointsLR[HY].maxAngle));
+    legLR.setKneeConstraints(radians(jointsLR[KNEE].minAngle), radians(jointsLR[KNEE].maxAngle));
+    legLR.setId("LRLeg");
 }
 
 SerialCommand cmd_servo_enable_("ENABLE", cmd_servo_enable);
@@ -502,39 +498,39 @@ SerialCommand cmd_circle_("CIRC", cmd_circle);
 SerialCommand cmd_walk_("WALK", cmd_walk);
 
 void setup() {
-  Serial.begin(57600);
-  delay(10);
+    Serial.begin(57600);
+    delay(10);
 
 	serial_commands_.SetDefaultHandler(cmd_unrecognized);
 	serial_commands_.AddCommand(&cmd_servo_enable_);
-  serial_commands_.AddCommand(&cmd_hipx_);
-  serial_commands_.AddCommand(&cmd_hipy_);
-  serial_commands_.AddCommand(&cmd_knee_);
-  serial_commands_.AddCommand(&cmd_leg_);
-  serial_commands_.AddCommand(&cmd_ik_);
-  serial_commands_.AddCommand(&cmd_stand_);
-  serial_commands_.AddCommand(&cmd_sit_);
-  serial_commands_.AddCommand(&cmd_lay_);
-  serial_commands_.AddCommand(&cmd_circle_);
-  serial_commands_.AddCommand(&cmd_walk_);
+    serial_commands_.AddCommand(&cmd_hipx_);
+    serial_commands_.AddCommand(&cmd_hipy_);
+    serial_commands_.AddCommand(&cmd_knee_);
+    serial_commands_.AddCommand(&cmd_leg_);
+    serial_commands_.AddCommand(&cmd_ik_);
+    serial_commands_.AddCommand(&cmd_stand_);
+    serial_commands_.AddCommand(&cmd_sit_);
+    serial_commands_.AddCommand(&cmd_lay_);
+    serial_commands_.AddCommand(&cmd_circle_);
+    serial_commands_.AddCommand(&cmd_walk_);
 
-  pwm.begin();
-  pwm.setOscillatorFrequency(27000000);  // The int.osc. is closer to 27MHz  
-  pwm.setPWMFreq(SERVO_FREQ);  // Analog servos run at ~50 Hz updates
-  delay(10);
+    pwm.begin();
+    pwm.setOscillatorFrequency(27000000);  // The int.osc. is closer to 27MHz  
+    pwm.setPWMFreq(SERVO_FREQ);  // Analog servos run at ~50 Hz updates
+    delay(10);
 
-  configureJoints();
-  configureMotors();
-  configureLegs();
-  configureController();
-  configureTasks();
-  quadruped.setLegs(legRF, legLF, legRR, legLR);
-  quadruped.setWalkParameters(gaitTask, &cmd);
-  QuadrupedFsm::start();
-  TRACE("%s", "Dogbot is ready!");
+    configureJoints();
+    configureMotors();
+    configureLegs();
+    configureController();
+    configureTasks();
+    quadruped.setLegs(&legRF, &legLF, &legRR, &legLR);
+    quadruped.setWalkParameters(gaitTask, &cmd);
+    QuadrupedFsm::start();
+    TRACE("%s", "Dogbot is ready!");
 }
 
 void loop() {
-  serial_commands_.ReadSerial();
-  taskManager->updateTasks();
+    serial_commands_.ReadSerial();
+    taskManager.updateTasks();
 }

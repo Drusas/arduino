@@ -3,20 +3,22 @@
 
 #include <Arduino.h>
 #include "IServoController.h"
-// #include "IMotor.h"
 
 class ServoController : public IServoController {
-  bool enabled;
-  IMotor **motors;
-  uint8_t numMotors, motorManagementIdx;
-
+  
 public:
-  ServoController(uint8_t maxNumberMotorsToManage); 
-  void setEnabled(bool state);
-  bool getEnabled();
-  void addMotor(IMotor *motor);
-  bool getHomed();
-  void homeMotors();
+    const static uint8_t MAX_NUM_MOTORS = 12;
+    ServoController(); 
+    void setEnabled(bool state);
+    bool getEnabled();
+    void addMotor(IMotor *motor);
+    bool getHomed();
+    void homeMotors();
+
+private:
+    bool enabled;
+    IMotor *motors[MAX_NUM_MOTORS];
+    uint8_t motorManagementIdx;
 };
 
 #endif
