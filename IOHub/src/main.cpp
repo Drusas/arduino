@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <LiquidCrystal.h>
+#include "stdlib.h"
 #include "Wire.h"
 
 // initialize the library by associating any needed LCD interface pin
@@ -8,14 +9,33 @@ const int rs = 7, en = 8, d4 = 9, d5 = 10, d6 = 11, d7 = 12;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
 int numBlinks;
+char readBuffer[BUFFER_LENGTH];
+int readIdx = 0;
 
 void receiveEvent(int howMany) {
   // Serial.println("receive event");
   while (Wire.available()) {
-    char c = Wire.read();
-    numBlinks = c;
-    Serial.print("received -> ");
-    Serial.println(numBlinks);
+    Serial.println("receive event");
+  //   char c = Wire.read();
+  //   numBlinks = c;
+  //   Serial.print("received -> ");
+  //   Serial.println(numBlinks);
+
+    readBuffer[readIdx++] = Wire.read();
+    if (readIdx == BUFFER_LENGTH) {
+      readIdx = 0;
+    }
+
+    if (readIdx < BUFFER_LENGTH - 2) {
+      readBuffer[++readIdx] = '\0';
+    }
+    else {
+      readBuffer[BUFFER_LENGTH - 1] = '\0';
+    }
+
+    printf("%s\n", readBuffer);
+    lcd.setCursor(0, 0);
+    lcd.write(readBuffer);
   }
 }
 
