@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <iostream>
+#include <queue>
 #include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
 #include "GaitTask.h"
@@ -16,9 +17,12 @@
 #include "Disabled.h"
 #include "Quadruped.h"
 
+using namespace std;
+
 #define SERVO_FREQ 50 // Analog servos run at ~50 Hz updates
 #define SERVOMIN  95 // This is the 'minimum' pulse length count (out of 4096)
 #define SERVOMAX  455 // This is the 'maximum' pulse length count (out of 4096)
+Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 
 enum JointIdx {
   HX = 0,
@@ -26,7 +30,6 @@ enum JointIdx {
   KNEE = 2,
 };
 
-Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 
 FSM_INITIAL_STATE(QuadrupedFsm, Disabled);
 
@@ -55,6 +58,8 @@ bool enabled = 0;
 
 char serial_command_buffer_[32];
 SerialCommands serial_commands_(&Serial, serial_command_buffer_, sizeof(serial_command_buffer_), "\r\n", " ");
+
+queue<String> lcdQueue;
 
 void cmd_unrecognized(SerialCommands* sender, const char* cmd) {
   TRACESC("Unrecognized command [%s]\n", cmd);
@@ -527,6 +532,7 @@ void setup() {
     quadruped.setWalkParameters(&gaitTask, &cmd);
     QuadrupedFsm::start();
     TRACE("%s", "Dogbot is ready!");
+    lcdQueue.push("Dogbot is ready!");
 }
 
 void loop() {

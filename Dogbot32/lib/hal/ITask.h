@@ -6,7 +6,6 @@
 
 #ifndef _ITASK_H
 #define _ITASK_H
-// #include <Arduino.h>
 #include <string>
 
 class ITask {
