@@ -19,10 +19,10 @@ void Quadruped::stand() {
     std::cout << "Quadruped::stand" << std::endl;
     if (legLF != nullptr) {
         std::cout << "Quadruped::stand:not null" << std::endl;
-        legLF->moveToXYZ(25, 60, 200);
-        legLR->moveToXYZ(-25, 60, 200);
-        legRF->moveToXYZ(25, 60, 200);
-        legRR->moveToXYZ(-25, 60, 200);
+        legRF->moveToXYZ(25, 60, 220);
+        legLF->moveToXYZ(25, 60, 220);
+        legRR->moveToXYZ(-25, 60, 220);
+        legLR->moveToXYZ(-25, 60, 220);
     }
 }
 

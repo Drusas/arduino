@@ -28,7 +28,7 @@ public:
                                          {1, 1, 1, 1, 1, 0, 1, 1},
                                          {1, 1, 1, 1, 1, 1, 1, 0}};
     float overlapTime = 0.1;
-    float swingTime = 0.15;
+    float swingTime = 0.10; // DEFAUL .15
     int overlapTicks = (int)(overlapTime / dt);
     int swingTicks = (int)(swingTime / dt);
     int stanceTicks = 2 * overlapTicks + swingTicks;
@@ -41,6 +41,11 @@ public:
     float defaultStance[3][4] = {{deltaX + xShift, deltaX + xShift, -deltaX + xShift, -deltaX + xShift},
                                  {-deltaY,         deltaY,          -deltaY,          deltaY         },
                                  { 0,              0,                0,               0              }};
+
+    /*                            RF   LF   RR   LR      */            
+    float standStance[3][4] = {{  55,  55, -25, -25},
+                               {  60,  60,  60,  60},
+                               { 220, 220, 220, 220}};
 
     // float defaultStance[3][4] = {{  24,  25, -25, -25},
     //                                 {  60,  60,  60,  60},

@@ -51,6 +51,7 @@ void State::printfootLocations() {
 }
 
 float State::getZPosition(int legIdx) {
+    // std::cout << "State:getZPosition(" << legIdx << "): " << footLocations[2][legIdx] << std::endl;
     return footLocations[2][legIdx];
 }
 
