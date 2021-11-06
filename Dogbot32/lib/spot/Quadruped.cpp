@@ -2,10 +2,13 @@
 #include "Quadruped.h"
 
 Quadruped::Quadruped() :
+controller(nullptr),
 legRF(nullptr),
 legLF(nullptr),
 legRR(nullptr),
-legLR(nullptr)
+legLR(nullptr),
+gaitTask(nullptr),
+cmd(nullptr)
 {}
 
 Quadruped::Quadruped(ILegController *RF, ILegController *LF, ILegController *RR, ILegController *LR) :
@@ -19,10 +22,11 @@ void Quadruped::stand() {
     std::cout << "Quadruped::stand" << std::endl;
     if (legLF != nullptr) {
         std::cout << "Quadruped::stand:not null" << std::endl;
-        legRF->moveToXYZ(25, 60, 220);
-        legLF->moveToXYZ(25, 60, 220);
-        legRR->moveToXYZ(-25, 60, 220);
-        legLR->moveToXYZ(-25, 60, 220);
+        float (*stance)[4] = controller->spotConfig->standStance;
+        legRF->moveToXYZ(stance[0][0], stance[1][0], stance[2][0]);
+        legLF->moveToXYZ(stance[0][1], stance[1][1], stance[2][1]);
+        legRR->moveToXYZ(stance[0][2], stance[1][2], stance[2][2]);
+        legLR->moveToXYZ(stance[0][3], stance[1][3], stance[2][3]);
     }
 }
 
@@ -48,16 +52,14 @@ void Quadruped::lay() {
     }
 }
 
-void Quadruped::setLegs(ILegController *RF, ILegController *LF, ILegController *RR, ILegController *LR) {
+void Quadruped::configure(ITask *task, Controller *cntlr, Command *command, ILegController *RF, ILegController *LF, ILegController *RR, ILegController *LR) {
+    gaitTask = task;
+    controller = cntlr;
+    cmd = command;
     legRF = RF;
     legLF = LF;
     legRR = RR;
     legLR = LR;
-}
-
-void Quadruped::setWalkParameters(ITask *task, Command *command) {
-    gaitTask = task;
-    cmd = command;
 }
 
 void Quadruped::walk() {

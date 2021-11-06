@@ -528,8 +528,7 @@ void setup() {
     configureLegs();
     configureController();
     configureTasks();
-    quadruped.setLegs(&legRF, &legLF, &legRR, &legLR);
-    quadruped.setWalkParameters(&gaitTask, &cmd);
+    quadruped.configure(&gaitTask, &ctlr, &cmd, &legRF, &legLF, &legRR, &legLR);
     QuadrupedFsm::start();
     TRACE("%s", "Dogbot is ready!");
     lcdQueue.push("Dogbot is ready!");
