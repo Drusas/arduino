@@ -20,7 +20,7 @@ void ServoMotor::configure(int interval, Joint *servoJoint, IServoController *co
     actPos = cmdPos; 
     homePos = joint->homeAngle;
     homed = false;
-    increment = 5;
+    increment = 50;
 }
 
 void ServoMotor::incrementActualPosition() {

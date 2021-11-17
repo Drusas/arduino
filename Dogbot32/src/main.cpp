@@ -397,7 +397,7 @@ void configureMotors() {
     motorsLF[HX].configure(20, &jointsLF[HX], &servoController, pwm);
     motorsLF[HY].configure(20, &jointsLF[HY], &servoController, pwm);
     motorsLF[KNEE].configure(20, &jointsLF[KNEE], &servoController, pwm);
-    motorsLF[KNEE].setSpeed(2);
+    // motorsLF[KNEE].setSpeed(2);
     servoController.addMotor(&motorsLF[HX]);
     servoController.addMotor(&motorsLF[HY]);
     servoController.addMotor(&motorsLF[KNEE]);
@@ -405,7 +405,7 @@ void configureMotors() {
     motorsLR[HX].configure(20, &jointsLR[HX], &servoController, pwm);
     motorsLR[HY].configure(20, &jointsLR[HY], &servoController, pwm);
     motorsLR[KNEE].configure(20, &jointsLR[KNEE], &servoController, pwm);
-    motorsLR[KNEE].setSpeed(2);
+    // motorsLR[KNEE].setSpeed(2);
     servoController.addMotor(&motorsLR[HX]);
     servoController.addMotor(&motorsLR[HY]);
     servoController.addMotor(&motorsLR[KNEE]);
@@ -413,7 +413,7 @@ void configureMotors() {
     motorsRF[HX].configure(20, &jointsRF[HX], &servoController, pwm);
     motorsRF[HY].configure(20, &jointsRF[HY], &servoController, pwm);
     motorsRF[KNEE].configure(20, &jointsRF[KNEE], &servoController, pwm);
-    motorsRF[KNEE].setSpeed(2);
+    // motorsRF[KNEE].setSpeed(2);
     servoController.addMotor(&motorsRF[HX]);
     servoController.addMotor(&motorsRF[HY]);
     servoController.addMotor(&motorsRF[KNEE]);
@@ -421,7 +421,7 @@ void configureMotors() {
     motorsRR[HX].configure(20, &jointsRR[HX], &servoController, pwm);
     motorsRR[HY].configure(20, &jointsRR[HY], &servoController, pwm);
     motorsRR[KNEE].configure(20, &jointsRR[KNEE], &servoController, pwm);
-    motorsRR[KNEE].setSpeed(2);
+    // motorsRR[KNEE].setSpeed(2);
     servoController.addMotor(&motorsRR[HX]);
     servoController.addMotor(&motorsRR[HY]);
     servoController.addMotor(&motorsRR[KNEE]);
