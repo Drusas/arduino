@@ -1,7 +1,7 @@
 #include "ServoMotor.h"
 #include "Utils.h"
 
-// #define DEBUG_SERVOMOTOR 1
+#define DEBUG_SERVOMOTOR 1
 
 ServoMotor::ServoMotor() {}
 
@@ -94,7 +94,7 @@ int ServoMotor::getServoIndex() {
 }
 
 void ServoMotor::performUpdate() {
-  TRACE("%s\n","PERFORMING UPDATE");
+//   TRACE("%s\n","PERFORMING UPDATE");
   if (!servoController->getEnabled() || !getHomed()) {
     TRACE("%s%d%s%d\n","NOT PERFORMING UPDATE, ENABLED: ", servoController->getEnabled(), getHomed());
     return;
