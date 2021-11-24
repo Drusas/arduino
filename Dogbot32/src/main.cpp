@@ -9,6 +9,7 @@
 #include "SerialCommands.h"
 #include "ServoController.h"
 #include "ServoMotor.h"
+#include "RestServiceTask.h""
 #include "TaskManager.h"
 #include "TrajectoryGenerator.h"
 #include "Utils.h"
@@ -22,6 +23,7 @@ using namespace std;
 #define SERVO_FREQ 330  // Analog servos run at ~50 Hz updates
 #define SERVOMIN  1350  // 95 // This is the 'minimum' pulse length count (out of 4096)
 #define SERVOMAX  2900  // 455 // This is the 'maximum' pulse length count (out of 4096)
+
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 
 enum JointIdx {
@@ -38,6 +40,7 @@ GaitTask gaitTask;
 State state;
 Command cmd;
 ServoController servoController; 
+RestServiceTask restService;
 TaskManager taskManager;
 
 Joint jointsLF[3];
@@ -334,8 +337,8 @@ void configureJoints()
   jointsRF[HX].maxPulse = jointsRF[HY].maxPulse = jointsRF[KNEE].maxPulse = SERVOMAX;
 
   jointsRF[HX].servoIndex = 5; // RR 10; // RF 5; // LR 11; // LF 4;
-  jointsRF[HX].minAngle = 75; // ds3225 90;
-  jointsRF[HX].maxAngle = 105; // ds3225 120;
+  jointsRF[HX].minAngle = 0; //75; // ds3225 90;
+  jointsRF[HX].maxAngle = 180; //105; // ds3225 120;
   jointsRF[HX].cmdAngle = 90; // ds3225 100; // RR 125; // RF 105; // LR 50; // LF 75
   jointsRF[HX].homeAngle = 90; // ds3225 100; // RR 125; // RF 105; // LR 50; // LF 75
   jointsRF[HX].translate = 90;
@@ -441,6 +444,9 @@ void configureTasks() {
     taskManager.addTask(&legRR);
     taskManager.addTask(&legLR);
     taskManager.addTask(&gaitTask);
+
+    restService.configure(20, &quadruped, &state);
+    taskManager.addTask(&restService);
 }
 
 void configureController() {
@@ -529,8 +535,12 @@ void setup() {
     configureTasks();
     quadruped.configure(&gaitTask, &ctlr, &cmd, &legRF, &legLF, &legRR, &legLR);
     QuadrupedFsm::start();
+    
     TRACE("%s", "Dogbot is ready!");
     lcdQueue.push("Dogbot is ready!");
+
+    restService.start();
+    restService.setEnabled(true);
 }
 
 void loop() {
