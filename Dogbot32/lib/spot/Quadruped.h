@@ -6,6 +6,11 @@
 #include "ILegController.h"
 #include "ITask.h"
 
+#define A2D_ROW 3
+#define A2D_COL 4
+
+typedef float Array2D[A2D_ROW][A2D_COL]; 
+
 class Quadruped {
     Controller *controller;
     ILegController *legRF, *legLF, *legRR, *legLR;
@@ -15,7 +20,7 @@ class Quadruped {
 public:
     // buffer for transfering leg xyz and servo angles back and forth
     // RF -> [0,2], LF -> [3,5], RF -> [6,8], RF -> [9,11]
-    static float LegPositions[3][4];    // buffer for transfering leg xyz and servo angles back and forth
+    static Array2D LegPositions;    // buffer for transfering leg xyz and servo angles back and forth
     Quadruped();
     Quadruped(ILegController *RF, ILegController *LF, ILegController *RR, ILegController *LR);
     void configure(ITask *task, Controller *cntlr, Command *command, ILegController *RF, ILegController *LF, ILegController *RR, ILegController *LR);
@@ -24,8 +29,10 @@ public:
     void lay();
     void walk();
     void stop();
-    // void updateLegXYZPositions();
-    // void updateLegJointAngles();
+    void updateLegXYZPositions();
+    void updateLegAngles();
+    void setLegAngles(uint8_t idx, float hx, float hy, float knee);
+    void setLegPosition(uint8_t idx, float x, float y, float z);
 };
 
 #endif

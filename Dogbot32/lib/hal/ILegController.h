@@ -9,8 +9,8 @@ public:
     virtual void moveToAngles(uint8_t hx, uint8_t hy, uint8_t k) = 0;
     virtual void setEnabled(bool state) = 0;
     virtual bool getEnabled() = 0;
-    virtual void getXYZPosition(float *destination) = 0;
-    virtual void getJointAngles(float *destination) = 0;
+    virtual void getXYZPosition(uint8_t col, float positions[][4]) = 0;
+    virtual void getJointAngles(uint8_t col, float jointAngles[][4]) = 0;
 };
 
 #endif

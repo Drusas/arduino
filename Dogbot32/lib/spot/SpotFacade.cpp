@@ -7,6 +7,8 @@
 Quadruped *SpotFacade::quadruped;
 IServoController *SpotFacade::servoController;
 
+Array2D *SpotFacade::LegPositions = &Quadruped::LegPositions;
+
 void SpotFacade::configure(Quadruped *q, IServoController *i) {
     SpotFacade::quadruped = q;
     SpotFacade::servoController = i;
@@ -45,4 +47,20 @@ void SpotFacade::lay() {
 
 void SpotFacade::walk() {
     QuadrupedFsm::dispatch(ToWalk(SpotFacade::quadruped));
+}
+
+void SpotFacade::updateLegAngles() {
+    if (SpotFacade::quadruped == nullptr) {
+        return;
+    }
+
+    SpotFacade::quadruped->updateLegAngles();
+}
+
+void SpotFacade::setLegAngles(uint8_t idx, float hx, float hy, float knee) {
+    SpotFacade::quadruped->setLegAngles(idx, hx, hy, knee);
+}
+
+void SpotFacade::setLegPosition(uint8_t idx, float x, float y, float z) {
+    SpotFacade::quadruped->setLegPosition(idx, x, y, z);
 }

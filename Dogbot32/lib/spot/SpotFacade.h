@@ -10,6 +10,7 @@ class SpotFacade {
     static IServoController *servoController;
 
 public:
+    static Array2D *LegPositions;    // buffer for transfering leg xyz and servo angles back and forth
     static void configure(Quadruped *q, IServoController *i);
     static void setEnabled(bool state);
     static bool getEnabled();
@@ -17,5 +18,8 @@ public:
     static void stand();
     static void lay();
     static void walk();
+    void updateLegAngles();
+    void setLegAngles(uint8_t idx, float hx, float hy, float knee);
+    void setLegPosition(uint8_t idx, float x, float y, float z);
 };
 #endif

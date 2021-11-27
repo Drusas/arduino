@@ -154,22 +154,20 @@ bool LegController::getEnabled() {
     return ArdTask::getEnabled();
 }
 
-void LegController::getXYZPosition(float *destination) {
-    if (destination == nullptr) {
+void LegController::getXYZPosition(uint8_t col, float positions[][4]) {
+    if (positions == nullptr) {
         return;
     }
-
-    destination[0] = NAN;
-    destination[1] = NAN;
-    destination[2] = NAN;
+    positions[0][col] = NAN;
+    positions[1][col] = NAN;
+    positions[2][col] = NAN;
 }
 
-void LegController::getJointAngles(float *destination) {
-    if (destination == nullptr) {
+void LegController::getJointAngles(uint8_t col, float jointAngles[][4]) {
+    if (jointAngles == nullptr) {
         return;
     }
-
-    destination[0] = degrees(hipxMotor->actPosition());
-    destination[1] = degrees(hipyMotor->actPosition());
-    destination[2] = degrees(kneeMotor->actPosition());
+    jointAngles[0][col] = hipxMotor->actPosition();
+    jointAngles[1][col] = hipyMotor->actPosition();
+    jointAngles[2][col] = kneeMotor->actPosition();
 }

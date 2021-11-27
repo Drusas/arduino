@@ -24,7 +24,10 @@ public:
     void start();
     static boolean getConfigured();
     static void executeCommand(std::string command);
-
+    static void getLegJointAngles();
+    static void postLegJointAngles();
+    static void postLegPosition();
+    
 protected:
     void performUpdate() override;
     
@@ -40,9 +43,9 @@ private:
     // void sendCrossOriginHeader();
     // void setCrossOrigin();
     // void getLegCoordinates();
-    // void getLegJointAngles();
-    // void postLegCoordinates();
-    // void postLegJointAngles();
+    
+    
+    
     // void startJson(char *tag, const char *value);
     // void endJson();
     // void addJsonArray(char *tag, float x, float y, float z);

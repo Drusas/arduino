@@ -163,68 +163,101 @@ void sendCrossOriginHeader(){
 }
 
 void getLegCoordinates() {
-  Serial.println("Get leg coordinates");
-  startJson("modeOfOperation", getModeOfOperationStr().c_str());
-  //updateLegCoordinates();
-//   addJsonArray("RF", rfLeg[0], rfLeg[1], rfLeg[2]);
-//   addJsonArray("LF", lfLeg[0], lfLeg[1], lfLeg[2]);
-//   addJsonArray("RR", rrLeg[0], rrLeg[1], rrLeg[2]);
-//   addJsonArray("LR", lrLeg[0], lrLeg[1], lrLeg[2]);
-  endJson();
-  server.send(200, "application/json", buffer);
+    Serial.println("Get leg coordinates");
+    startJson("modeOfOperation", getModeOfOperationStr().c_str());
+    //updateLegCoordinates();
+    //   addJsonArray("RF", rfLeg[0], rfLeg[1], rfLeg[2]);
+    //   addJsonArray("LF", lfLeg[0], lfLeg[1], lfLeg[2]);
+    //   addJsonArray("RR", rrLeg[0], rrLeg[1], rrLeg[2]);
+    //   addJsonArray("LR", lrLeg[0], lrLeg[1], lrLeg[2]);
+    // Serial.println(buffer);
+    endJson();
+    server.send(200, "application/json", buffer);
 }
 
-void getLegJointAngles() {
-  Serial.println("Get leg joint angles");
-  startJson("modeOfOperation", getModeOfOperationStr().c_str());
-  addJsonArray("RF", 90.1, 90.1, 135.1);
-  addJsonArray("LF", 90.2, 90.2, 135.2);
-  addJsonArray("RR", 90.3, 90.3, 135.3);
-  addJsonArray("LR", 90.4, 90.4, 135.4);
-  endJson();
-  Serial.println(buffer);
-  server.send(200, "application/json", buffer);
+void RestServiceTask::getLegJointAngles() {
+    Serial.println("Get leg joint angles");
+    startJson("modeOfOperation", getModeOfOperationStr().c_str());
+    RestServiceTask::spotFacade->updateLegAngles();
+    addJsonArray("RF", RestServiceTask::spot->LegPositions[0][0], RestServiceTask::spot->LegPositions[1][0], RestServiceTask::spot->LegPositions[2][0]);
+    addJsonArray("LF", RestServiceTask::spot->LegPositions[0][1], RestServiceTask::spot->LegPositions[1][1], RestServiceTask::spot->LegPositions[2][1]);
+    addJsonArray("RR", RestServiceTask::spot->LegPositions[0][2], RestServiceTask::spot->LegPositions[1][2], RestServiceTask::spot->LegPositions[2][2]);
+    addJsonArray("LR", RestServiceTask::spot->LegPositions[0][3], RestServiceTask::spot->LegPositions[1][3], RestServiceTask::spot->LegPositions[2][3]);
+    endJson();
+    Serial.println(buffer);
+    server.send(200, "application/json", buffer);
 }
 
-void postLegCoordinates() {
-  Serial.println("Post leg coordinates");
-  if (server.hasArg("plain") == false) {
-    //handle error here
-  }
-  String body = server.arg("plain");
-  deserializeJson(jsonDocument, body);
-  Serial.println(body.c_str());
-
-//   legs[jsonDocument["leg"]][0] = jsonDocument["x"];
-//   legs[jsonDocument["leg"]][1] = jsonDocument["y"];
-//   legs[jsonDocument["leg"]][2] = jsonDocument["z"];
+uint8_t getLegIndexFromStr(std::string legStr) {
+    Serial.print("getLegIndexFromStr ");
+    Serial.println(legStr.c_str());
+    if (legStr.compare("RF") == 0) {
+            return 0;
+    }
+    if (legStr.compare("LF") == 0) {
+            return 1;
+    }
+    if (legStr.compare("RR") == 0) {
+            return 2;
+    }
+    if (legStr.compare("LR") == 0) {
+            return 3;
+    }
+    return 99;
 }
 
-void postLegJointAngles() {
-  Serial.println("Post leg joint angles");
-  if (server.hasArg("plain") == false) {
-    //handle error here
-  }
-  String body = server.arg("plain");
-  deserializeJson(jsonDocument, body);
-  Serial.println(body.c_str());
+void RestServiceTask::postLegJointAngles() {
+    Serial.println("Post leg joint angles");
+    if (server.hasArg("plain") == false) {
+        //handle error here
+    }
+    String body = server.arg("plain");
+    deserializeJson(jsonDocument, body);
+    Serial.println(body.c_str());
+
+    uint8_t idx = 99;
+    std::string legStr = jsonDocument["leg"];
+    idx = getLegIndexFromStr(legStr);
+    Serial.println("Post leg joint angles");
+    float hx = atof(jsonDocument["hx"]);
+    float hy = atof(jsonDocument["hy"]);
+    float knee = atof(jsonDocument["knee"]);
+
+    RestServiceTask::spotFacade->setLegAngles(idx, hx, hy, knee);
 }
 
+void RestServiceTask::postLegPosition() {
+    Serial.println("Post leg coordinates");
+    if (server.hasArg("plain") == false) {
+        //handle error here
+    }
+    String body = server.arg("plain");
+    deserializeJson(jsonDocument, body);
+    Serial.println(body.c_str());
 
+    uint8_t idx = 99;
+    std::string legStr = jsonDocument["leg"];
+    idx = getLegIndexFromStr(legStr);
+    float x = atof(jsonDocument["x"]);
+    float y = atof(jsonDocument["y"]);
+    float z = atof(jsonDocument["z"]);
+
+    RestServiceTask::spotFacade->setLegPosition(idx, x, y, z);
+}
 
 void setupRouting() {
-server.on("/modeOfOperation", HTTP_GET, getModeOfOperation);
-server.on("/modeOfOperation", HTTP_POST, postModeOfOperation);
-server.on("/modeOfOperation", HTTP_OPTIONS, sendCrossOriginHeader);
+    server.on("/modeOfOperation", HTTP_GET, getModeOfOperation);
+    server.on("/modeOfOperation", HTTP_POST, postModeOfOperation);
+    server.on("/modeOfOperation", HTTP_OPTIONS, sendCrossOriginHeader);
 
-server.on("/legCoordinates", HTTP_GET, getLegCoordinates);
-server.on("/legCoordinates", HTTP_POST, postLegCoordinates);
-server.on("/legCoordinates", HTTP_OPTIONS, sendCrossOriginHeader);
+    server.on("/legCoordinates", HTTP_GET, getLegCoordinates);
+    server.on("/legCoordinates", HTTP_POST, RestServiceTask::postLegPosition);
+    server.on("/legCoordinates", HTTP_OPTIONS, sendCrossOriginHeader);
 
-server.on("/legJointAngles", HTTP_GET, getLegJointAngles);
-server.on("/legJointAngles", HTTP_POST, postLegJointAngles);
-server.on("/legJointAngles", HTTP_OPTIONS, sendCrossOriginHeader);
-  	 	 
-  server.enableCORS(true);	 	 
-  server.begin();
+    server.on("/legJointAngles", HTTP_GET, RestServiceTask::getLegJointAngles);
+    server.on("/legJointAngles", HTTP_POST, RestServiceTask::postLegJointAngles);
+    server.on("/legJointAngles", HTTP_OPTIONS, sendCrossOriginHeader);
+            
+    server.enableCORS(true);	 	 
+    server.begin();
 }

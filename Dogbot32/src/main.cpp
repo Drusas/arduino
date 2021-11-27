@@ -163,58 +163,57 @@ void cmd_leg(SerialCommands* sender) {
 }
 
 void cmd_ik(SerialCommands* sender) {
-  TRACESC("%s\n", "Start IK command");
-  char* idx_str = sender->Next();
-	if (idx_str == NULL) {
-		sender->GetSerial()->println("ERROR IK IDX LEG [X, Y, Z]");
-		return;
-  }
-  TRACESC("%s%s\n", "IDX, ", idx_str);
-  char* hx_str = sender->Next();
-	if (hx_str == NULL) {
-		sender->GetSerial()->println("ERROR IK IDX LEG [X, Y, Z]");
-		return;
-	}
-  TRACESC("%s%s\n", "HX, ", hx_str);
+    TRACESC("%s\n", "Start IK command");
+    char* idx_str = sender->Next();
+        if (idx_str == NULL) {
+            sender->GetSerial()->println("ERROR IK IDX LEG [X, Y, Z]");
+            return;
+    }
+    TRACESC("%s%s\n", "IDX, ", idx_str);
+    char* hx_str = sender->Next();
+        if (hx_str == NULL) {
+            sender->GetSerial()->println("ERROR IK IDX LEG [X, Y, Z]");
+            return;
+        }
+    TRACESC("%s%s\n", "HX, ", hx_str);
 
-  char* hy_str = sender->Next();
-  if (hx_str == NULL) {
-		sender->GetSerial()->println("ERROR IK IDX LEG [X, Y, Z]");
-		return;
-	}
-  TRACESC("%s%s\n", "HY, ", hy_str);
+    char* hy_str = sender->Next();
+    if (hx_str == NULL) {
+            sender->GetSerial()->println("ERROR IK IDX LEG [X, Y, Z]");
+            return;
+        }
+    TRACESC("%s%s\n", "HY, ", hy_str);
 
-  char* knee_str = sender->Next();
-  if (knee_str == NULL) {
-		sender->GetSerial()->println("ERROR IK LEG [X, Y, Z]");
-		return;
-	}
-  TRACESC("%s%s\n", "KNEE, ", knee_str);
-  TRACESC("%s %s %s %s %s\n", "IK",idx_str, hx_str, hy_str, knee_str);
+    char* knee_str = sender->Next();
+    if (knee_str == NULL) {
+            sender->GetSerial()->println("ERROR IK LEG [X, Y, Z]");
+            return;
+        }
+    TRACESC("%s%s\n", "KNEE, ", knee_str);
+    TRACESC("%s %s %s %s %s\n", "IK",idx_str, hx_str, hy_str, knee_str);
   
-  int idx = atoi(idx_str);
+    int idx = atoi(idx_str);
 	int x = atoi(hx_str);
-  int y = atoi(hy_str);
-  int z = atoi(knee_str);
-  switch (idx)
-  {
-  case 0:
-    legLF.moveToXYZ(x, y, z);
-    break;
-  case 1:
-    legLR.moveToXYZ(x, y, z);
-    break;
-  case 2:
-    legRF.moveToXYZ(x, y, z);
-    break;
-  case 3:
-    legRR.moveToXYZ(x, y, z);
-    break;
-  default:
-    TRACESC("%s, %d", "Invalid index", idx);
-    break;
-  }
-  
+    int y = atoi(hy_str);
+    int z = atoi(knee_str);
+    switch (idx)
+    {
+    case 0:
+        legLF.moveToXYZ(x, y, z);
+        break;
+    case 1:
+        legLR.moveToXYZ(x, y, z);
+        break;
+    case 2:
+        legRF.moveToXYZ(x, y, z);
+        break;
+    case 3:
+        legRR.moveToXYZ(x, y, z);
+        break;
+    default:
+        TRACESC("%s, %d", "Invalid index", idx);
+        break;
+    }
 }
 
 void cmd_stand(SerialCommands* sender) {

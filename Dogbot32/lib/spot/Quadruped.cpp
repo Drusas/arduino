@@ -1,6 +1,8 @@
 #include <iostream>
 #include "Quadruped.h"
 
+float Quadruped::LegPositions[3][4];
+
 Quadruped::Quadruped() :
 controller(nullptr),
 legRF(nullptr),
@@ -88,22 +90,68 @@ void Quadruped::stop() {
     }
 }
 
-// void Quadruped::updateLegXYZPositions() {
-//     std::cout << "Quadruped::updateLegXYZPositions" << std::endl;
-//     if ((legRF != nullptr) && (gaitTask != nullptr)) {
-//         legRF->getXYZPosition(&Quadruped::LegPositions[0]);
-//         legRF->getXYZPosition(&Quadruped::LegPositions[3]);
-//         legRF->getXYZPosition(&Quadruped::LegPositions[6]);
-//         legRF->getXYZPosition(&Quadruped::LegPositions[9]);
-//     }
-// }
+void Quadruped::updateLegXYZPositions() {
+    std::cout << "Quadruped::updateLegXYZPositions" << std::endl;
+    if ((legRF != nullptr) && (gaitTask != nullptr)) {
+        legRF->getXYZPosition(0, Quadruped::LegPositions);
+        legLF->getXYZPosition(1, Quadruped::LegPositions);
+        legRR->getXYZPosition(2, Quadruped::LegPositions);
+        legLR->getXYZPosition(3, Quadruped::LegPositions);
+    }
+}
 
-// void Quadruped::updateLegJointAngles() {
-//     std::cout << "Quadruped::updateLegJointAngles" << std::endl;
-//     if ((legRF != nullptr) && (gaitTask != nullptr)) {
-//         legRF->getJointAngles(&Quadruped::LegPositions);
-//         legRF->getJointAngles(&Quadruped::LegPositions);
-//         legRF->getJointAngles(&Quadruped::LegPositions);
-//         legRF->getJointAngles(&Quadruped::LegPositions);
-//     }
-// }
+void Quadruped::updateLegAngles() {
+    std::cout << "Quadruped::updateLegAngles" << std::endl;
+    if ((legRF != nullptr) && (gaitTask != nullptr)) {
+        legRF->getJointAngles(0, Quadruped::LegPositions);
+        legLF->getJointAngles(1, Quadruped::LegPositions);
+        legRR->getJointAngles(2, Quadruped::LegPositions);
+        legLR->getJointAngles(3, Quadruped::LegPositions);
+    }
+}
+
+void Quadruped::setLegAngles(uint8_t idx, float hx, float hy, float knee) {
+    std::cout << "Quadruped::setLegAngles" << std::endl;
+    if ((legRF != nullptr) && (gaitTask != nullptr)) {
+        switch (idx) {
+            case 0:
+                legRF->moveToAngles(hx, hy, knee);
+                break;
+            case 1:
+                legLF->moveToAngles(hx, hy, knee);
+                break;
+            case 2:
+                legRR->moveToAngles(hx, hy, knee);
+                break;
+            case 3:
+                legLR->moveToAngles(hx, hy, knee);
+                break;
+            default:
+                std::cout << "invalid leg index: " << idx << std::endl;
+        }
+    }
+}
+
+
+
+void Quadruped::setLegPosition(uint8_t idx, float x, float y, float z) {
+    std::cout << "Quadruped::setLegAngles" << std::endl;
+    if ((legRF != nullptr) && (gaitTask != nullptr)) {
+        switch (idx) {
+            case 0:
+                legRF->moveToXYZ(x, y, z);
+                break;
+            case 1:
+                legLF->moveToXYZ(x, y, z);
+                break;
+            case 2:
+                legRR->moveToXYZ(x, y, z);
+                break;
+            case 3:
+                legLR->moveToXYZ(x, y, z);
+                break;
+            default:
+                std::cout << "invalid leg index: " << idx << std::endl;
+        }
+    }
+}
