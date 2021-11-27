@@ -153,3 +153,23 @@ void LegController::setEnabled(bool state) {
 bool LegController::getEnabled() {
     return ArdTask::getEnabled();
 }
+
+void LegController::getXYZPosition(float *destination) {
+    if (destination == nullptr) {
+        return;
+    }
+
+    destination[0] = NAN;
+    destination[1] = NAN;
+    destination[2] = NAN;
+}
+
+void LegController::getJointAngles(float *destination) {
+    if (destination == nullptr) {
+        return;
+    }
+
+    destination[0] = degrees(hipxMotor->actPosition());
+    destination[1] = degrees(hipyMotor->actPosition());
+    destination[2] = degrees(kneeMotor->actPosition());
+}

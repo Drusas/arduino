@@ -1,7 +1,6 @@
 #ifndef _SPOT_STANCECONTROLLER_H
 #define _SPOT_STANCECONTROLLER_H
 
-// #include <Arduino.h>
 #include "Command.h"
 #include "Configuration.h"
 #include "State.h"

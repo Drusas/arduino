@@ -13,6 +13,9 @@ class Quadruped {
     Command *cmd;
 
 public:
+    // buffer for transfering leg xyz and servo angles back and forth
+    // RF -> [0,2], LF -> [3,5], RF -> [6,8], RF -> [9,11]
+    static float LegPositions[3][4];    // buffer for transfering leg xyz and servo angles back and forth
     Quadruped();
     Quadruped(ILegController *RF, ILegController *LF, ILegController *RR, ILegController *LR);
     void configure(ITask *task, Controller *cntlr, Command *command, ILegController *RF, ILegController *LF, ILegController *RR, ILegController *LR);
@@ -21,6 +24,8 @@ public:
     void lay();
     void walk();
     void stop();
+    // void updateLegXYZPositions();
+    // void updateLegJointAngles();
 };
 
 #endif

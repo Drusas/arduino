@@ -87,3 +87,23 @@ void Quadruped::stop() {
         legLR->setEnabled(false);
     }
 }
+
+// void Quadruped::updateLegXYZPositions() {
+//     std::cout << "Quadruped::updateLegXYZPositions" << std::endl;
+//     if ((legRF != nullptr) && (gaitTask != nullptr)) {
+//         legRF->getXYZPosition(&Quadruped::LegPositions[0]);
+//         legRF->getXYZPosition(&Quadruped::LegPositions[3]);
+//         legRF->getXYZPosition(&Quadruped::LegPositions[6]);
+//         legRF->getXYZPosition(&Quadruped::LegPositions[9]);
+//     }
+// }
+
+// void Quadruped::updateLegJointAngles() {
+//     std::cout << "Quadruped::updateLegJointAngles" << std::endl;
+//     if ((legRF != nullptr) && (gaitTask != nullptr)) {
+//         legRF->getJointAngles(&Quadruped::LegPositions);
+//         legRF->getJointAngles(&Quadruped::LegPositions);
+//         legRF->getJointAngles(&Quadruped::LegPositions);
+//         legRF->getJointAngles(&Quadruped::LegPositions);
+//     }
+// }

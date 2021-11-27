@@ -4,21 +4,35 @@
 #include "ArdTask.h"
 #include "Quadruped.h"
 #include "QuadrupedFsm.h"
+#include "SpotFacade.h"
 #include "State.h"
+#include <map>
+
+typedef void (*SpotFunction)(void);
 
 class RestServiceTask : public ArdTask {
-    
+
+    static SpotFacade *spotFacade;
+    static Quadruped *spot;
+    static State *spotState;
+    static void (*f)(void);
+    static std::map<std::string, SpotFunction> commandMap;
 
 public:
     RestServiceTask();
-    void configure(int interval, Quadruped *q, State *s);
+    void configure(int interval, SpotFacade *sf, Quadruped *q, State *s);
     void start();
-    boolean getConfigured();
+    static boolean getConfigured();
+    static void executeCommand(std::string command);
 
 protected:
     void performUpdate() override;
+    
 
 private:
+    static void enable();
+    static void disable();
+    
     // void connectToWiFi();
     // void setupRouting();
     // void getModeOfOperation();

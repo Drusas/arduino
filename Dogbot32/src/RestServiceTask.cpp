@@ -1,8 +1,12 @@
 #include "ArduinoJson.h"
+#include <iostream>
 #include "RestServiceTask.h"
+#include "SpotFacade.h"
 #include "QuadrupedFsm.h"
 #include "WebServer.h"
 #include "WiFi.h"
+
+#include <map>
 
 const char *SSID = "TP-209";
 const char *PWD = "BuddyWireless!";
@@ -11,30 +15,61 @@ static const uint16_t JSON_BUF_SIZE = 500;
 static StaticJsonDocument<JSON_BUF_SIZE> jsonDocument;
 static char buffer[JSON_BUF_SIZE];
 static WebServer server;
-Quadruped *spot;
-State *spotState;
+Quadruped *RestServiceTask::spot;
+State *RestServiceTask::spotState;
+SpotFacade *RestServiceTask::spotFacade;
+
+std::map<std::string, SpotFunction> RestServiceTask::commandMap;
 
 void setupRouting();
 void connectToWiFi();
 
-RestServiceTask::RestServiceTask() {
-    spot = nullptr;
-    spotState = nullptr;
+void RestServiceTask::enable() {
+    RestServiceTask::spotFacade->setEnabled(true);
 }
 
-void RestServiceTask::configure(int interval, Quadruped *q, State *s) {
+void RestServiceTask::disable() {
+    RestServiceTask::spotFacade->setEnabled(false);
+}
+
+RestServiceTask::RestServiceTask() {
+    RestServiceTask::spotFacade = nullptr;
+    RestServiceTask::spot = nullptr;
+    RestServiceTask::spotState = nullptr;
+}
+
+void RestServiceTask::configure(int interval, SpotFacade *sf, Quadruped *q, State *s) {
     setEnabled(false);
     updateInterval = interval;
-    spot = q;
-    spotState = s;
+    RestServiceTask::spotFacade = sf;
+    RestServiceTask::spot = q;
+    RestServiceTask::spotState = s;
+    commandMap["enable"] = &RestServiceTask::enable;
+    commandMap["disable"] = &RestServiceTask::disable;
 }
 
-boolean getConfigured() {
-    return (spot != nullptr);
+void RestServiceTask::executeCommand(std::string command) {
+    if (RestServiceTask::spot == nullptr) {
+        return;
+    }
+
+    transform(command.begin(), command.end(), command.begin(), ::tolower);
+    auto iter = commandMap.find(command);
+    if (iter == commandMap.end())
+    {
+        std::cout << "command not found" << command << std::endl;
+    }
+    else {
+        (*iter->second)();
+    }
+}
+
+boolean RestServiceTask::getConfigured() {
+    return (RestServiceTask::spot != nullptr);
 }
 
 void RestServiceTask::start() {
-    if (spot == nullptr) {
+    if (RestServiceTask::spot == nullptr) {
         return;
     }
 
@@ -43,7 +78,7 @@ void RestServiceTask::start() {
 }
 
 void RestServiceTask::performUpdate() {
-    if ((spot == nullptr) || (spotState == nullptr)) {
+    if ((RestServiceTask::spot == nullptr) || (RestServiceTask::spotState == nullptr)) {
         return;
     }
 
@@ -89,7 +124,7 @@ void setCrossOrigin(){
 
 std::string getModeOfOperationStr() {
     std::string mode = "Unknown";
-    if (getConfigured()) {
+    if (RestServiceTask::getConfigured()) {
         mode = QuadrupedFsm::getCurrentState();
     }
     return mode;
@@ -103,18 +138,22 @@ void getModeOfOperation() {
 }
 
 void postModeOfOperation() {
-  Serial.println("Post mode of operation");
-  if (server.hasArg("plain") == false) {
-    //handle error here
-  }
-  String body = server.arg("plain");
-  deserializeJson(jsonDocument, body);
-  Serial.println(body.c_str());
+    Serial.println("Post mode of operation");
+    if (server.hasArg("plain") == false) {
+        //handle error here
+    }
+    String body = server.arg("plain");
+    deserializeJson(jsonDocument, body);
+    Serial.println(body.c_str());
 
-  const char *m = jsonDocument["value"];
-//   mode = m;
-  Serial.print("modeOfOperation: ");
-  Serial.println(m);
+    const char *m = jsonDocument["value"];
+    //   mode = m;
+    Serial.print("modeOfOperation: ");
+    Serial.println(m);
+
+    std::string str = m;
+    
+    RestServiceTask::executeCommand(str);
 }
 
 void sendCrossOriginHeader(){

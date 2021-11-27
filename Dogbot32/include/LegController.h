@@ -56,6 +56,8 @@ protected:
     void followTrajectory(Point *buffer, uint8_t numPoints);
     void setEnabled(bool state) override;
     bool getEnabled() override;
+    void getXYZPosition(float *destination) override;
+    void getJointAngles(float *destination) override;
 };
 
 #endif

@@ -9,7 +9,8 @@
 #include "SerialCommands.h"
 #include "ServoController.h"
 #include "ServoMotor.h"
-#include "RestServiceTask.h""
+#include "SpotFacade.h"
+#include "RestServiceTask.h"
 #include "TaskManager.h"
 #include "TrajectoryGenerator.h"
 #include "Utils.h"
@@ -62,6 +63,7 @@ char serial_command_buffer_[32];
 SerialCommands serial_commands_(&Serial, serial_command_buffer_, sizeof(serial_command_buffer_), "\r\n", " ");
 
 queue<String> lcdQueue;
+SpotFacade spotFacade;
 
 void cmd_unrecognized(SerialCommands* sender, const char* cmd) {
   TRACESC("Unrecognized command [%s]\n", cmd);
@@ -445,7 +447,9 @@ void configureTasks() {
     taskManager.addTask(&legLR);
     taskManager.addTask(&gaitTask);
 
-    restService.configure(20, &quadruped, &state);
+    spotFacade.configure(&quadruped, &servoController);
+
+    restService.configure(20, &spotFacade, &quadruped, &state);
     taskManager.addTask(&restService);
 }
 
