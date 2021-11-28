@@ -46,6 +46,10 @@ void RestServiceTask::configure(int interval, SpotFacade *sf, Quadruped *q, Stat
     RestServiceTask::spotState = s;
     commandMap["enable"] = &RestServiceTask::enable;
     commandMap["disable"] = &RestServiceTask::disable;
+    commandMap["stand"] = RestServiceTask::spotFacade->stand;
+    commandMap["sit"] = RestServiceTask::spotFacade->sit;
+    commandMap["lay"] = RestServiceTask::spotFacade->lay;
+    commandMap["walk"] = RestServiceTask::spotFacade->walk;
 }
 
 void RestServiceTask::executeCommand(std::string command) {

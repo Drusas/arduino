@@ -214,6 +214,7 @@ void cmd_ik(SerialCommands* sender) {
         TRACESC("%s, %d", "Invalid index", idx);
         break;
     }
+
 }
 
 void cmd_stand(SerialCommands* sender) {
@@ -283,7 +284,7 @@ void configureJoints()
   jointsLF[HX].cmdAngle = 80; // ds3225 80; // RR 125; // RF 105; // LR 50; // LF 75
   jointsLF[HX].homeAngle = 80; // RR 125; // RF 105; // LR 50; // LF 75
   jointsLF[HX].translate = 90;
-  jointsLF[HX].offset = 0; // ds3225 -10;
+  jointsLF[HX].offset = -5; // ds3225 -10;
   jointsLF[HX].sign = -1;
 
   jointsLF[HY].servoIndex = 2; // RR 12; // RF 3; // LR 13; // LF 2;
@@ -322,7 +323,7 @@ void configureJoints()
   jointsLR[HY].cmdAngle = 130; // RR 50; // RF 50 // LF/LR 130;
   jointsLR[HY].homeAngle = 130; // RF/RR 50; // LF/LR 130;
   jointsLR[HY].translate = 90;
-  jointsLR[HY].offset = 0;
+  jointsLR[HY].offset = 10;
   jointsLR[HY].sign = 1;
 
   jointsLR[KNEE].servoIndex = 15; // RR 14; // RF 1 // LR 15; // LF 0;
@@ -373,7 +374,7 @@ void configureJoints()
   jointsRR[HX].cmdAngle = 90; // ds3225 120; // RR 125; // RF 105; // LR 50; // LF 75
   jointsRR[HX].homeAngle = 90; // ds3225 120; // RR 125; // RF 105; // LR 50; // LF 75
   jointsRR[HX].translate = 90;
-  jointsRR[HX].offset = 0; // ds3225 30;
+  jointsRR[HX].offset = 10; // ds3225 30;
   jointsRR[HX].sign = -1;
 
   jointsRR[HY].servoIndex = 12; // RR 12; // RF 3; // LR 13; // LF 2;
@@ -382,7 +383,7 @@ void configureJoints()
   jointsRR[HY].cmdAngle = 55; // ds3225 0; // RR 50; // RF 50 // LF/LR 130;
   jointsRR[HY].homeAngle = 55; // ds3225 0; // RF/RR 50; // LF/LR 130;
   jointsRR[HY].translate = 90;
-  jointsRR[HY].offset = 0;
+  jointsRR[HY].offset = -40;
   jointsRR[HY].sign = -1;
 
   jointsRR[KNEE].servoIndex = 14; // RR 14; // RF 1 // LR 15; // LF 0;

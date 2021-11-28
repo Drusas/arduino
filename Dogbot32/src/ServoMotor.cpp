@@ -21,6 +21,8 @@ void ServoMotor::configure(int interval, Joint *servoJoint, IServoController *co
     homePos = joint->homeAngle;
     homed = false;
     increment = 50;
+
+    joint->offset = 0;
 }
 
 void ServoMotor::incrementActualPosition() {
@@ -41,10 +43,10 @@ void ServoMotor::incrementActualPosition() {
 
 int ServoMotor::clipAngle(int inputAngle) {
   int temp;
-  if (inputAngle < joint->minAngle) {
-    temp = joint->minAngle;
-  } else if (inputAngle > joint->maxAngle) {
-    temp = joint->maxAngle;
+  if (inputAngle < (joint->minAngle + joint->offset)) {
+    temp = joint->minAngle + joint->offset;
+  } else if (inputAngle > (joint->maxAngle + joint->offset)) {
+    temp = joint->maxAngle + joint->offset;
   } else {
     temp = inputAngle;
   }
@@ -52,7 +54,7 @@ int ServoMotor::clipAngle(int inputAngle) {
 }
 
 void ServoMotor::setPosition(int angle) {
-    cmdPos = clipAngle((angle));
+    cmdPos = clipAngle(angle + joint->offset);
 #ifdef DEBUG_SERVOMOTOR
     TRACE("%s, %d, %d, %d\n", "ServoMotor::setPosition:", this->joint->servoIndex, angle, cmdPos);
 #endif
@@ -74,7 +76,7 @@ int ServoMotor::actPosition() {
 
 void ServoMotor::home() {
   if (servoController->getEnabled()) {
-    long pulseLength = map(joint->homeAngle, 0, 180, joint->minPulse, joint->maxPulse);
+    long pulseLength = map(joint->homeAngle, 0, 180 + joint->offset, joint->minPulse, joint->maxPulse);
     driver.setPWM(joint->servoIndex, 0, pulseLength);
     cmdPos = actPos = joint->homeAngle;
     homed = true;
@@ -102,7 +104,7 @@ void ServoMotor::performUpdate() {
 
   if (actPos != cmdPos) {
     incrementActualPosition();
-    long pulseLength = map(actPos, 0, 180, joint->minPulse, joint->maxPulse);
+    long pulseLength = map(actPos, 0, (180 + joint->offset), joint->minPulse, joint->maxPulse);
     driver.setPWM(joint->servoIndex, 0, pulseLength);
 #ifdef DEBUG_SERVOMOTOR
       TRACE("%d,%d,%d, %d,%d\n",joint->servoIndex, pulseLength, cmdPos, actPos, atPosition());
