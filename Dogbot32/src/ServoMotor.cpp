@@ -22,7 +22,7 @@ void ServoMotor::configure(int interval, Joint *servoJoint, IServoController *co
     homed = false;
     increment = 50;
 
-    joint->offset = 0;
+    // joint->offset = 0;
 }
 
 void ServoMotor::incrementActualPosition() {
@@ -71,7 +71,7 @@ int ServoMotor::cmdPosition() {
 }
 
 int ServoMotor::actPosition() {
-  return actPos;
+  return (actPos - joint->offset);
 }
 
 void ServoMotor::home() {
