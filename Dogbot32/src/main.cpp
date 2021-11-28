@@ -6,6 +6,7 @@
 #include "GaitTask.h"
 #include "ILegController.h"
 #include "LegController.h"
+#include "Ps2xTask.h"
 #include "SerialCommands.h"
 #include "ServoController.h"
 #include "ServoMotor.h"
@@ -38,6 +39,7 @@ FSM_INITIAL_STATE(QuadrupedFsm, Disabled);
 Configuration spotConfg;
 Controller ctlr;
 GaitTask gaitTask;
+Ps2xTask ps2xTask;
 State state;
 Command cmd;
 ServoController servoController; 
@@ -451,6 +453,9 @@ void configureTasks() {
 
     restService.configure(20, &spotFacade, &quadruped, &state);
     taskManager.addTask(&restService);
+
+    ps2xTask.configure(20, &spotFacade);
+    taskManager.addTask(&ps2xTask);
 }
 
 void configureController() {
@@ -550,6 +555,8 @@ void setup() {
 
     restService.start();
     restService.setEnabled(true);
+
+    ps2xTask.setEnabled(true);
 }
 
 void loop() {
