@@ -13,6 +13,11 @@ public:
 
 protected:
     void performUpdate() override;
+
+private:
+    void handleGuitarHeroController();
+    void handleDualShockController();
+    void reconnectIfNecessary();
 };
 
 #endif
