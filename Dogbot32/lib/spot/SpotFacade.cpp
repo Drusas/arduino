@@ -9,9 +9,17 @@ IServoController *SpotFacade::servoController;
 
 Array2D *SpotFacade::LegPositions = &Quadruped::LegPositions;
 
+void (*modeArray[4])();
+
+int modeIdx = 0;
+
 void SpotFacade::configure(Quadruped *q, IServoController *i) {
     SpotFacade::quadruped = q;
     SpotFacade::servoController = i;
+    modeArray[0] = sit;
+    modeArray[1] = lay;
+    modeArray[2] = stand;
+    modeArray[3] = walk;
 }
 
 void SpotFacade::setEnabled(bool state) {
@@ -63,4 +71,11 @@ void SpotFacade::setLegAngles(uint8_t idx, float hx, float hy, float knee) {
 
 void SpotFacade::setLegPosition(uint8_t idx, float x, float y, float z) {
     SpotFacade::quadruped->setLegPosition(idx, x, y, z);
+}
+
+void SpotFacade::toggleMode() {
+    if (getEnabled()) {
+        int i = modeIdx++ % 4;
+        (*modeArray[i])();
+    }
 }

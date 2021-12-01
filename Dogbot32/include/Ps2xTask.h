@@ -18,6 +18,8 @@ private:
     void handleGuitarHeroController();
     void handleDualShockController();
     void reconnectIfNecessary();
+    void updateWalkingSpeed(byte xVelocity, byte yVelocity);
+    void updateBodyPosition(byte xVelocity, byte yVelocity);
 };
 
 #endif
