@@ -6,6 +6,7 @@
 
 class Ps2xTask : public ArdTask {
     SpotFacade *spot;
+    byte walkXSpeed, walkYSpeed, bodyXSpeed, bodyYSpeed;
 
 public:
     Ps2xTask();
@@ -20,6 +21,7 @@ private:
     void reconnectIfNecessary();
     void updateWalkingSpeed(byte xVelocity, byte yVelocity);
     void updateBodyPosition(byte xVelocity, byte yVelocity);
+    float convertToCommandVelocity(byte joystickValue);
 };
 
 #endif

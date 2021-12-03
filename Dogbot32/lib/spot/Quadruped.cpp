@@ -72,7 +72,7 @@ void Quadruped::walk() {
         legLF->setEnabled(true);
         legRR->setEnabled(true);
         legLR->setEnabled(true);
-        cmd->horizontalVelocity[0] = 100.5;
+        //cmd->horizontalVelocity[0] = 100.5;
         gaitTask->setEnabled(true);
     }
 }
@@ -154,4 +154,21 @@ void Quadruped::setLegPosition(uint8_t idx, float x, float y, float z) {
                 std::cout << "invalid leg index: " << idx << std::endl;
         }
     }
+}
+
+void Quadruped::setWalkingSpeed(float xVelocity, float yVelocity) {
+    if (cmd != nullptr) {
+        // todo set as scalar (0, 1)
+        std::cout << "Quadruped::setWalkingSpeed " << xVelocity << std::endl;
+        cmd->horizontalVelocity[0] = xVelocity;
+        // cmd->horizontalVelocity[1] = yVelocity;
+    }
+}
+
+void Quadruped::setBodySpeed(float xVelocity, float yVelocity) {
+    if (cmd != nullptr) {
+        // todo set as scalar (0, 1)
+        // cmd->horizontalVelocity[0] = xVelocity;
+        // cmd->horizontalVelocity[1] = yVelocity;
+    }   
 }

@@ -47,6 +47,7 @@ void attempt_to_connect() {
 
 Ps2xTask::Ps2xTask() {
     spot = nullptr;
+    walkXSpeed = walkYSpeed = bodyXSpeed = bodyYSpeed = 0;
     attempt_to_connect();
 }
 
@@ -75,34 +76,39 @@ void Ps2xTask::reconnectIfNecessary() {
 }
 
 void Ps2xTask::handleDualShockController() {
-    if (ps2x.Button(PSB_L1)) {  // toggle servos on/off
-        TRACE("%s\n", "enable/disable");
-        spot->setEnabled(!spot->getEnabled());
-    }
+    if (ps2x.NewButtonState()) {
+        if (ps2x.Button(PSB_L1)) {  // toggle servos on/off
+            TRACE("%s\n", "enable/disable");
+            if (spot != nullptr) {
+                spot->setEnabled(!spot->getEnabled());
+            }
+        }
 
-    if (ps2x.Button(PSB_R1)) {  // toggle modes
-        TRACE("%s\n", "toggle mode");
-        spot->toggleMode();
-    }
+        if (ps2x.Button(PSB_R1)) {  // toggle modes
+            TRACE("%s\n", "toggle mode");
+            if (spot != nullptr) {
+                spot->toggleMode();
+            }
+        }
 
-    if (ps2x.Button(PSB_PAD_UP)) {      // raise body, all legs extend
-        TRACE("%s\n", "Up held this hard: ");
-        // TRACE("%s\n", ps2x.Analog(PSAB_PAD_UP), DEC);
+        if (ps2x.Button(PSB_PAD_UP)) {      // raise body, all legs extend
+            TRACE("%s\n", "Up held this hard: ");
+            // TRACE("%s\n", ps2x.Analog(PSAB_PAD_UP), DEC);
+        }
+        if (ps2x.Button(PSB_PAD_DOWN)) {  // lower body, all legs contract
+            TRACE("%s\n", "DOWN held this hard: ");
+            // TRACE("%s\n", ps2x.Analog(PSAB_PAD_DOWN), DEC);
+        }
+        if (ps2x.Button(PSB_PAD_RIGHT)) { // roll body right
+            TRACE("%s\n", "Right held this hard: ");
+            // TRACE("%s\n", ps2x.Analog(PSAB_PAD_RIGHT), DEC);
+        }
+        if (ps2x.Button(PSB_PAD_LEFT)) { // roll body left
+            TRACE("%s\n", "LEFT held this hard: ");
+            // TRACE("%s\n", ps2x.Analog(PSAB_PAD_LEFT), DEC);
+        }
     }
-    if (ps2x.Button(PSB_PAD_DOWN)) {  // lower body, all legs contract
-        TRACE("%s\n", "DOWN held this hard: ");
-        // TRACE("%s\n", ps2x.Analog(PSAB_PAD_DOWN), DEC);
-    }
-    if (ps2x.Button(PSB_PAD_RIGHT)) { // roll body right
-        TRACE("%s\n", "Right held this hard: ");
-        // TRACE("%s\n", ps2x.Analog(PSAB_PAD_RIGHT), DEC);
-    }
-    if (ps2x.Button(PSB_PAD_LEFT)) { // roll body left
-        TRACE("%s\n", "LEFT held this hard: ");
-        // TRACE("%s\n", ps2x.Analog(PSAB_PAD_LEFT), DEC);
-    }
-
-    updateWalkingSpeed(ps2x.Analog(PSS_LX), ps2x.Analog(PSS_LY));
+    updateWalkingSpeed(ps2x.Analog(PSS_LY), ps2x.Analog(PSS_LX));
     updateBodyPosition(ps2x.Analog(PSS_RX), ps2x.Analog(PSS_RY));
 
     // if(ps2x.Button(PSB_START))         //will be TRUE as long as button is pressed
@@ -144,9 +150,29 @@ void Ps2xTask::handleDualShockController() {
 }
 
 void Ps2xTask::updateWalkingSpeed(byte xVelocity, byte yVelocity) {
-
+    if ((abs(walkXSpeed - xVelocity) > 1) || (abs(walkYSpeed - yVelocity) > 1)) {
+        if (spot != nullptr) {
+            spot->setWalkingSpeed(convertToCommandVelocity(xVelocity), convertToCommandVelocity(yVelocity));
+        }
+        walkXSpeed = xVelocity;
+        walkYSpeed = yVelocity;
+        Serial.printf("%s, %d, %d\n", "update walking speed", walkXSpeed, walkYSpeed);
+    }
 }
 
 void Ps2xTask::updateBodyPosition(byte xVelocity, byte yVelocity) {
+    if ((abs(bodyXSpeed - xVelocity) > 1) || (abs(bodyYSpeed - yVelocity) > 1)) {
+        if (spot != nullptr) {
+            spot->setBodySpeed(convertToCommandVelocity(xVelocity), convertToCommandVelocity(yVelocity));
+        }
+        bodyXSpeed = xVelocity;
+        bodyYSpeed = yVelocity;
+        Serial.printf("%s, %d, %d\n", "update body speed", bodyXSpeed, bodyYSpeed);
+    }
+}
 
+float Ps2xTask::convertToCommandVelocity(byte joystickValue) {
+    float velocity = -((joystickValue - 128) / 128.) * 100.0;
+    Serial.println(velocity);
+    return velocity;
 }

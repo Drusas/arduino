@@ -5,6 +5,7 @@
 #include <Adafruit_PWMServoDriver.h>
 #include "GaitTask.h"
 #include "ILegController.h"
+#include "LcdTask.h"
 #include "LegController.h"
 #include "Ps2xTask.h"
 #include "SerialCommands.h"
@@ -40,6 +41,7 @@ Configuration spotConfg;
 Controller ctlr;
 GaitTask gaitTask;
 Ps2xTask ps2xTask;
+LcdTask lcdTask;
 State state;
 Command cmd;
 ServoController servoController; 
@@ -64,7 +66,7 @@ bool enabled = 0;
 char serial_command_buffer_[32];
 SerialCommands serial_commands_(&Serial, serial_command_buffer_, sizeof(serial_command_buffer_), "\r\n", " ");
 
-queue<String> lcdQueue;
+queue<std::string> lcdQueue;
 SpotFacade spotFacade;
 
 void cmd_unrecognized(SerialCommands* sender, const char* cmd) {
@@ -449,13 +451,17 @@ void configureTasks() {
     taskManager.addTask(&legLR);
     taskManager.addTask(&gaitTask);
 
-    spotFacade.configure(&quadruped, &servoController);
+    spotFacade.configure(&quadruped, &servoController, &lcdQueue);
 
     restService.configure(20, &spotFacade, &quadruped, &state);
     taskManager.addTask(&restService);
 
-    ps2xTask.configure(20, &spotFacade);
+    ps2xTask.configure(10, &spotFacade);
     taskManager.addTask(&ps2xTask);
+
+    lcdTask.configure(500, &lcdQueue);
+    taskManager.addTask(&lcdTask);
+
 }
 
 void configureController() {
@@ -557,6 +563,9 @@ void setup() {
     restService.setEnabled(true);
 
     ps2xTask.setEnabled(true);
+    
+    lcdTask.start();
+    lcdTask.setEnabled(true);
 }
 
 void loop() {

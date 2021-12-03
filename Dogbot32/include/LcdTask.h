@@ -1,21 +1,24 @@
 #ifndef _LCD_TASK_H
 #define _LCD_TASK_H
 
-#include "ITask.h"
+#include "ArdTask.h"
 #include <queue>
 #include <string>
 
 using namespace std;
 
-class LcdTask : ITask {
+class LcdTask : public ArdTask {
     queue<string> *statusQueue;
+
+    void helloWorld();
 
 protected:
     void performUpdate() override;
 
 public:
     LcdTask();
-    void configure(queue<string> *q);
+    void configure(int interval, queue<string> *q);
+    void start();
 };
 
 #endif

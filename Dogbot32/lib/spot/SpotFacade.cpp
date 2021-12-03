@@ -6,16 +6,16 @@
 
 Quadruped *SpotFacade::quadruped;
 IServoController *SpotFacade::servoController;
-
+std::queue<std::string> *SpotFacade::statusQueue;
 Array2D *SpotFacade::LegPositions = &Quadruped::LegPositions;
 
 void (*modeArray[4])();
-
 int modeIdx = 0;
 
-void SpotFacade::configure(Quadruped *q, IServoController *i) {
+void SpotFacade::configure(Quadruped *q, IServoController *i, std::queue<std::string> *status) {
     SpotFacade::quadruped = q;
     SpotFacade::servoController = i;
+    SpotFacade::statusQueue = status;
     modeArray[0] = sit;
     modeArray[1] = lay;
     modeArray[2] = stand;
@@ -30,6 +30,10 @@ void SpotFacade::setEnabled(bool state) {
     else {
         QuadrupedFsm::dispatch(ToDisable(SpotFacade::servoController, SpotFacade::quadruped));
     }
+
+    std::string str = state ? "Enabled" : "Disabled";
+
+    SpotFacade::statusQueue->push("Servos: " + str);
 }
 
  bool SpotFacade::getEnabled() {
@@ -78,4 +82,12 @@ void SpotFacade::toggleMode() {
         int i = modeIdx++ % 4;
         (*modeArray[i])();
     }
+}
+
+void SpotFacade::setWalkingSpeed(float xVelocity, float yVelocity) {
+    SpotFacade::quadruped->setWalkingSpeed(xVelocity, yVelocity);
+}
+
+void SpotFacade::setBodySpeed(float xVelocity, float yVelocity) {
+    SpotFacade::quadruped->setBodySpeed(xVelocity, yVelocity);
 }

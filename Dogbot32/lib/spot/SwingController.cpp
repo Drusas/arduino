@@ -16,6 +16,7 @@ void SwingController::configure(Configuration *config) {
 void SwingController::nextFootLocation(float swingProportion, int legIdx, State *state, Command *command, float *newLocation) {
     // todo: assert swing_prop >= 0 and swing_prop <= 1
 
+    // std::cout << "command velocity: " << command->horizontalVelocity[0] << std::endl;
     float currentFootLocation[3];
     state->getFootLocation(legIdx, currentFootLocation);
     // std::cout << "current: [ " << currentFootLocation[0] << ", " << currentFootLocation[1] << ", "<< currentFootLocation[2] << "]" << std::endl;

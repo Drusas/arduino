@@ -33,6 +33,8 @@ public:
     void updateLegAngles();
     void setLegAngles(uint8_t idx, float hx, float hy, float knee);
     void setLegPosition(uint8_t idx, float x, float y, float z);
+    void setWalkingSpeed(float xVelocity, float yVelocity);
+    void setBodySpeed(float xVelocity, float yVelocity);
 };
 
 #endif
